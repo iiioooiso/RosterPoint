@@ -11,6 +11,7 @@ export type CookiePreferences = {
   preferences: boolean;
   analytics: boolean;
   marketing: boolean;
+  consentGiven: boolean;
   version: string;
   timestamp: string;
 };
@@ -32,6 +33,7 @@ export function CookieConsent() {
     preferences: false,
     analytics: false,
     marketing: false,
+    consentGiven: false,
     version: VERSION,
     timestamp: new Date().toISOString(),
   });
@@ -49,20 +51,21 @@ export function CookieConsent() {
     const stored = localStorage.getItem(CONSENT_KEY);
     const forceShow = process.env.NEXT_PUBLIC_ALWAYS_SHOW_COOKIE_BANNER === "true";
 
+    let isValid = false;
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        if (parsed.version === VERSION) {
+        if (parsed.version === VERSION && parsed.consentGiven) {
           setPreferences(parsed);
+          isValid = true;
         }
       } catch (e) {
         console.error("Failed to parse cookie preferences", e);
       }
     }
 
-    if (!stored || forceShow) {
-      const timer = setTimeout(() => setIsOpen(true), 500);
-      return () => clearTimeout(timer);
+    if (!isValid || forceShow) {
+      setIsOpen(true);
     }
   }, []);
 
@@ -70,6 +73,7 @@ export function CookieConsent() {
     const prefsToSave = {
       ...newPrefs,
       essential: true,
+      consentGiven: true,
       timestamp: new Date().toISOString(),
       version: VERSION,
     };

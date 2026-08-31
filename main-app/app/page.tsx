@@ -1,6 +1,11 @@
 import Link from "next/link";
+import { createClient } from "@/lib/server";
+import { signOutAction } from "@/app/auth/actions";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-sans antialiased">
       {/* Navbar */}
@@ -17,14 +22,22 @@ export default function Home() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm font-medium transition-colors hover:text-foreground/80 text-foreground/60">
-              Log in
-            </Link>
+            {user ? (
+              <form action={signOutAction}>
+                <button type="submit" className="text-sm font-medium transition-colors hover:text-foreground/80 text-foreground/60 cursor-pointer">
+                  Log out
+                </button>
+              </form>
+            ) : (
+              <Link href="/login" className="text-sm font-medium transition-colors hover:text-foreground/80 text-foreground/60">
+                Log in
+              </Link>
+            )}
             <Link
-              href="/signup"
+              href={user ? "/dashboard" : "/signup"}
               className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2"
             >
-              Get Started
+              {user ? "Dashboard" : "Get Started"}
             </Link>
           </div>
         </div>
