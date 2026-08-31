@@ -39,9 +39,15 @@ function SignupContent() {
   const handleGoogleSubmit = async () => {
     setError(null)
     setSuccess(null)
-    startTransition(async () => {
-      await signInWithGoogleAction()
-    })
+    
+    // Do not use startTransition for external redirects
+    const result = await signInWithGoogleAction()
+    
+    if (result?.error) {
+      setError(result.error)
+    } else if (result?.url) {
+      window.location.href = result.url
+    }
   }
 
   return (

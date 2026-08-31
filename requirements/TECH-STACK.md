@@ -60,3 +60,52 @@ The architecture follows a modern, serverless approach keeping infrastructure ma
 | **Database** | PostgreSQL (Supabase) | Core relational database with Row Level Security (RLS). |
 | **Auth** | Supabase Auth | User authentication, sessions, and role management. |
 | **AI / ML** | N/A | None needed for the core MVP scope. |
+
+
+
+
+Recruiter creates Job Opening
+        ↓
+Candidates apply
+        ↓
+Candidate enters pipeline
+        ↓
+Recruiter decides who should interview
+        ↓
+Recruiter assigns Interviewer(s)
+        ↓
+Interviewer sees assigned application
+        ↓
+Interviewer conducts interview
+        ↓
+Interviewer leaves feedback
+        ↓
+Feedback becomes part of immutable history
+
+
+                         ┌───────────────┐
+                         │ Authentication │
+                         │    + RBAC      │
+                         └───────┬───────┘
+                                 │
+              ┌──────────────────┼──────────────────┐
+              │                  │                  │
+              ▼                  ▼                  ▼
+        ┌──────────┐       ┌────────────┐     ┌────────────┐
+        │ Dashboard│       │    Jobs    │     │ Applicants │
+        └──────────┘       └─────┬──────┘     └─────┬──────┘
+                                  │                   │
+                                  │                   ├── Pipeline
+                                  │                   ├── Search
+                                  │                   ├── Bulk Actions
+                                  │                   ├── Export
+                                  │                   └── Applicant Detail
+                                  │                          │
+                                  │                          └── Interviews
+                                  │
+                                  ▼
+                            Applications
+                                  │
+                 ┌────────────────┼────────────────┐
+                 ▼                ▼                ▼
+              History           Alerts          Interviews

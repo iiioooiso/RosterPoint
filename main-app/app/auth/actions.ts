@@ -108,11 +108,11 @@ export async function signInWithGoogleAction() {
   })
 
   if (error) {
-    redirect(`/login?error=${encodeURIComponent(error.message)}`)
+    return { error: error.message }
   }
 
   if (data.url) {
-    redirect(data.url)
+    return { url: data.url }
   }
 }
 
@@ -139,6 +139,6 @@ export async function completeOnboardingAction(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  return { url: '/dashboard' }
 }
 

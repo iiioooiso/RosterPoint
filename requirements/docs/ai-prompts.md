@@ -526,3 +526,343 @@ Review the plan again and make these architectural corrections before implementa
 11. Keep the existing RosterPoint design system and shadcn/ui components. The Google button should be compact, polished, and visually consistent with the rest of the authentication UI.
 
 Update the existing plan only. Do not implement anything yet.
+
+
+
+
+
+
+-----------------------------------------------------------------------
+UI/UX first development 
+# Recruiter Dashboard — Initial UI/UX Shell
+
+We are now starting the **Recruiter dashboard UI/UX** for the Hiring Pipeline application.
+
+For this step, **FOCUS ONLY ON THE UI AND UX.**
+
+Do not implement backend functionality, database operations, API integrations, authentication logic, role enforcement, real data fetching, or business logic yet.
+
+The goal is to first establish a polished, production-quality **Recruiter dashboard shell and navigation system**. We will build each section individually in later steps.
+
+---
+
+## 1. Recruiter Dashboard Layout
+
+Create the main authenticated Recruiter workspace with two primary areas:
+
+### Left Sidebar
+
+A persistent navigation sidebar containing the recruiter's main sections.
+
+### Main Content Area
+
+A large content area on the right.
+
+For this first step, the **main content area should intentionally remain blank**.
+
+Do not build the individual page content yet.
+
+The purpose of this task is only to establish the global layout, navigation, spacing, responsiveness, and visual hierarchy.
+
+---
+
+# 2. Recruiter Navigation
+
+Add the following six primary navigation items to the left sidebar, in this exact order:
+
+1. **Dashboard**
+2. **Jobs**
+3. **Applicants**
+4. **Interview Panel**
+5. **Alerts**
+6. **History**
+
+Do **not** add additional primary navigation items.
+
+Do not create separate tabs for:
+
+* Pipeline
+* Search
+* Bulk Actions
+* Export
+* Settings
+* Analytics
+
+Those are features that will belong inside the appropriate sections later rather than separate primary navigation destinations.
+
+---
+
+# 3. Sidebar Design
+
+Design the sidebar as a modern, polished SaaS / Applicant Tracking System interface.
+
+It should feel like a real production application, not a generic admin dashboard template.
+
+Include:
+
+* Application logo/name at the top
+* The six navigation items
+* Appropriate icons for every navigation item
+* Clear active state
+* Hover state
+* Proper spacing between navigation items
+* Consistent icon sizing
+* Strong but subtle visual hierarchy
+* Clean typography
+* Good alignment
+* Comfortable click/touch targets
+
+The sidebar should feel compact and professional rather than oversized.
+
+Avoid excessive decoration, gradients, unnecessary borders, or visually noisy elements.
+
+---
+
+# 4. Active Navigation
+
+**Dashboard should be active by default.**
+
+The active state should be immediately recognizable through appropriate combination of:
+
+* Background treatment
+* Text/icon emphasis
+* Border/accent treatment if consistent with the existing design system
+
+Do not make the active state overly bright or distracting.
+
+All other navigation items should remain visually secondary.
+
+Hover states should provide clear feedback without looking like another active state.
+
+---
+
+# 5. Alerts Navigation Item
+
+The **Alerts** navigation item needs to support a notification/count badge in the final product.
+
+For now, create only the UI treatment.
+
+Example:
+
+```text
+Alerts                         7
+```
+
+Use a small, polished badge that can later display the number of stalled applications.
+
+Use a static placeholder number purely for visual purposes.
+
+**Do not implement alert detection, counting, dismissal, or any backend logic yet.**
+
+The final system will use this area for stalled-application alerts.
+
+---
+
+# 6. Interview Panel Navigation Item
+
+Use the exact label:
+
+**Interview Panel**
+
+Do not call it:
+
+* Interviews
+* Interviewing
+* Interview Management
+* Interviewers
+
+The assignment's requirement is centered around recruiters assigning interviewers to applications and managing the interview panel.
+
+For now, only create the navigation item and its visual states.
+
+Do not build the Interview Panel page yet.
+
+---
+
+# 7. Main Content Area
+
+Keep the right-side content area intentionally empty for now.
+
+Do NOT build:
+
+* Dashboard KPI cards
+* Charts
+* Job tables
+* Applicant tables
+* Candidate cards
+* Pipeline boards
+* Interviewer assignment UI
+* Alert lists
+* History timelines
+* Forms
+* Modals
+* Filters
+* Search bars
+* Bulk actions
+
+We will design and implement these separately.
+
+You may use a simple neutral background or empty-state placeholder if necessary to visually establish the layout, but it should not look like an actual finished page.
+
+---
+
+# 8. Responsive Behaviour
+
+The dashboard shell must be responsive.
+
+### Desktop
+
+Use:
+
+```text
+┌──────────────────┬─────────────────────────────────────┐
+│                  │                                     │
+│     Sidebar      │                                     │
+│                  │         Main Content Area            │
+│     Dashboard    │                                     │
+│     Jobs         │                                     │
+│     Applicants   │                                     │
+│     Interview    │                                     │
+│     Panel        │                                     │
+│     Alerts       │                                     │
+│     History      │                                     │
+│                  │                                     │
+└──────────────────┴─────────────────────────────────────┘
+```
+
+The sidebar should remain stable while the main content area occupies the remaining viewport.
+
+### Tablet / Smaller Screens
+
+The sidebar should adapt appropriately.
+
+Do not allow:
+
+* Navigation items to overflow
+* Text to overlap
+* Content to become horizontally broken
+* The sidebar to consume excessive screen width
+
+### Mobile
+
+Use an appropriate collapsed/mobile navigation pattern while preserving access to all six sections.
+
+---
+
+# 9. Existing Design System
+
+Before making changes, inspect the existing project.
+
+Reuse the application's existing:
+
+* Colors
+* Typography
+* Spacing system
+* Border radius
+* Shadows
+* Components
+* Icons
+* Buttons
+* Layout conventions
+* shadcn/ui components where appropriate
+
+Do **not** introduce a completely different visual language.
+
+The recruiter dashboard should look like a natural extension of the existing application.
+
+---
+
+# 10. UX Quality
+
+Pay attention to the details that make the shell feel production-ready:
+
+* Consistent spacing
+* Clear hierarchy
+* Proper hover feedback
+* Clear active state
+* Good visual balance
+* Appropriate sidebar width
+* Proper alignment of icons and labels
+* Accessible contrast
+* Keyboard-friendly navigation
+* Clear focus states
+* Smooth but subtle transitions
+
+Do not add animations just for decoration.
+
+Keep interactions fast and understated.
+
+---
+
+# 11. Do Not Implement Business Logic Yet
+
+This is extremely important.
+
+For this task, do NOT implement:
+
+* Recruiter authentication
+* Interviewer authentication
+* RBAC
+* Supabase queries
+* Database schema changes
+* API routes
+* Server actions
+* Candidate fetching
+* Job fetching
+* Application fetching
+* Alert calculations
+* Pipeline transitions
+* Interviewer assignments
+* Timeline/history logic
+* CSV generation
+
+This is **UI/UX only**.
+
+If existing functionality already exists in the project, do not unnecessarily rewrite it.
+
+---
+
+# 12. Final Navigation Structure
+
+The finished shell should visually communicate this structure:
+
+```text
+RECRUITER
+│
+├── Dashboard
+├── Jobs
+├── Applicants
+├── Interview Panel
+├── Alerts
+└── History
+```
+
+Dashboard should be selected by default.
+
+The other sections should be navigable visually, but their actual page functionality does not need to be implemented in this step.
+
+---
+
+# Scope of This Task
+
+### Build ONLY:
+
+**Recruiter Dashboard Shell**
++
+**Left Sidebar**
++
+**Six Navigation Items**
++
+**Active/Hover/Focus States**
++
+**Alerts Badge UI**
++
+**Responsive Layout**
++
+**Empty Main Content Area**
+
+### Do NOT build the individual sections yet.
+
+After completing this shell, **stop**.
+
+We will next design each recruiter section one at a time, starting with the actual **Dashboard** page and its required hiring metrics.

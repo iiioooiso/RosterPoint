@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Script from "next/script";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -19,6 +20,7 @@ export const metadata: Metadata = {
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CookieConsent } from "@/components/cookie-consent";
+import { ServiceWorkerUnregister } from "@/components/service-worker";
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -26,7 +28,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head />
       <body className="min-h-full flex flex-col">
+        <ServiceWorkerUnregister />
         <TooltipProvider delay={150}>
           {children}
         </TooltipProvider>

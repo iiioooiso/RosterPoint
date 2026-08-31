@@ -17,6 +17,8 @@ export default function OnboardingPage() {
       const result = await completeOnboardingAction(formData)
       if (result?.error) {
         setError(result.error)
+      } else if (result?.url) {
+        window.location.href = result.url
       }
     })
   }

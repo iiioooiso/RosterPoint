@@ -2,7 +2,18 @@ import Link from "next/link";
 import { createClient } from "@/lib/server";
 import { signOutAction } from "@/app/auth/actions";
 
-export default async function Home() {
+import { redirect } from "next/navigation";
+
+type Props = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function Home(props: Props) {
+  const searchParams = await props.searchParams;
+  if (searchParams?.code) {
+    redirect(`/auth/callback?code=${searchParams.code}`);
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
