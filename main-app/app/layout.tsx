@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { CookieConsent } from "@/components/cookie-consent";
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <TooltipProvider delay={150}>
           {children}
         </TooltipProvider>
+        <CookieConsent />
       </body>
     </html>
   );
