@@ -30,6 +30,15 @@ export function ThemeProvider({ children, defaultTheme = "system" }: { children:
     return theme === "dark";
   }, [theme, mounted]);
 
+  React.useEffect(() => {
+    if (!mounted) return;
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDark, mounted]);
+
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       <div className={`${isDark ? "dark" : ""} contents`}>

@@ -1,0 +1,139 @@
+'use server'
+
+import { createClient } from '@/lib/server'
+import { revalidatePath } from 'next/cache'
+
+export async function addInterviewerToApplication(applicationId: string, interviewerId: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('application_interviewers')
+    .insert({ application_id: applicationId, interviewer_id: interviewerId })
+
+  if (error) {
+    if (error.code === '23505') {
+      return { error: 'Interviewer is already assigned to this application.' }
+    }
+    return { error: 'Failed to assign interviewer. Please check permissions and try again.' }
+  }
+
+  revalidatePath('/recruiter/interview-panel')
+  return { success: true }
+}
+
+export async function removeInterviewerFromApplication(applicationId: string, interviewerId: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('application_interviewers')
+    .delete()
+    .eq('application_id', applicationId)
+    .eq('interviewer_id', interviewerId)
+
+  if (error) {
+    return { error: 'Failed to remove interviewer.' }
+  }
+
+  revalidatePath('/recruiter/interview-panel')
+  return { success: true }
+}
+
+export async function bulkAddInterviewer(applicationIds: string[], interviewerId: string) {
+  const supabase = await createClient()
+  
+  const results = {
+    successCount: 0,
+    failures: [] as { applicationId: string; error: string }[]
+  }
+
+  for (const appId of applicationIds) {
+    const { error } = await supabase
+      .from('application_interviewers')
+      .insert({ application_id: appId, interviewer_id: interviewerId })
+      
+    if (error) {
+      if (error.code !== '23505') { // Ignore unique constraint violations (already assigned)
+        results.failures.push({ applicationId: appId, error: error.message })
+      }
+    } else {
+      results.successCount++
+    }
+  }
+
+  revalidatePath('/recruiter/interview-panel')
+  return { success: true, results }
+}
+
+export async function bulkRemoveInterviewer(applicationIds: string[], interviewerId: string) {
+  const supabase = await createClient()
+  
+  const results = {
+    successCount: 0,
+    failures: [] as { applicationId: string; error: string }[]
+  }
+
+  for (const appId of applicationIds) {
+    const { error } = await supabase
+      .from('application_interviewers')
+      .delete()
+      .eq('application_id', appId)
+      .eq('interviewer_id', interviewerId)
+      
+    if (error) {
+      results.failures.push({ applicationId: appId, error: error.message })
+    } else {
+      results.successCount++
+    }
+  }
+
+  revalidatePath('/recruiter/interview-panel')
+  return { success: true, results }
+}
+
+export async function getApplicationDetails(applicationId: string) {
+  const supabase = await createClient()
+
+  const { data: appData, error: appError } = await supabase
+    .from('applications')
+    .select(`
+      id,
+      stage,
+      candidate_name,
+      candidate_email,
+      source,
+      created_at,
+      opening:openings(id, title, department)
+    `)
+    .eq('id', applicationId)
+    .single()
+
+  if (appError) {
+    return { error: 'Failed to load application details.' }
+  }
+
+  const { data: panelData } = await supabase
+    .from('application_interviewers')
+    .select(`
+      id,
+      interviewer:profiles(id, name)
+    `)
+    .eq('application_id', applicationId)
+
+  const { data: historyData } = await supabase
+    .from('application_history')
+    .select(`
+      id,
+      event_type,
+      details,
+      created_at,
+      actor:profiles(name)
+    `)
+    .eq('application_id', applicationId)
+    .order('created_at', { ascending: false })
+
+  return { 
+    application: appData, 
+    panel: panelData || [], 
+    history: historyData || [] 
+  }
+}

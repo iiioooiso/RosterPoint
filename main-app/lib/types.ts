@@ -4,6 +4,12 @@ export interface Profile {
   id: string;
   role: UserRole;
   created_at: string;
+  name?: string | null;
+  age?: number | null;
+  sex?: string | null;
+  university_name?: string | null;
+  company_name?: string | null;
+  job_title?: string | null;
 }
 
 export type OpeningStatus = "open" | "closed";
@@ -49,4 +55,36 @@ export interface Opening {
   requirements: OpeningRequirement[];
   skills: string[];
   application_materials: ApplicationMaterials;
+}
+
+export type ApplicationStage = "applied" | "screening" | "interview" | "offer" | "rejected" | "withdrawn";
+
+export interface Application {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  student_id: string;
+  opening_id: string;
+  stage: ApplicationStage;
+  notes: string | null;
+  routed_department_id: string | null;
+  candidate_name: string | null;
+  candidate_email: string | null;
+  source: string | null;
+}
+
+export interface ApplicationInterviewer {
+  id: string;
+  application_id: string;
+  interviewer_id: string;
+  created_at: string;
+}
+
+export interface ApplicationHistory {
+  id: string;
+  application_id: string;
+  actor_id: string | null;
+  event_type: string;
+  details: any;
+  created_at: string;
 }
