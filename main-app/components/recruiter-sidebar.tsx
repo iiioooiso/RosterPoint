@@ -28,45 +28,50 @@ import {
 const navItems = [
   {
     title: "Dashboard",
-    url: "/dashboard",
+    url: "/recruiter/dashboard",
     icon: LayoutDashboard,
   },
   {
     title: "Create",
-    url: "/create",
+    url: "/recruiter/create",
     icon: Plus,
   },
   {
     title: "Applicants",
-    url: "/applicants",
+    url: "/recruiter/applicants",
     icon: Users,
   },
   {
+    title: "Teams & Routing",
+    url: "/recruiter/teams",
+    icon: Command,
+  },
+  {
     title: "Interview Panel",
-    url: "/interview-panel",
+    url: "/recruiter/interview-panel",
     icon: Video,
   },
   {
     title: "Alerts",
-    url: "/alerts",
+    url: "/recruiter/alerts",
     icon: Bell,
     badge: "7",
   },
   {
     title: "History",
-    url: "/history",
+    url: "/recruiter/history",
     icon: History,
   },
 ];
 
-export function RecruiterSidebar() {
+export function RecruiterSidebar({ user }: { user?: { email: string, role: string, fallback: string } | null }) {
   const pathname = usePathname();
 
   return (
     <Sidebar>
       <SidebarHeader className="flex h-14 items-center justify-center border-b px-4">
         <Link
-          href="/dashboard"
+          href="/recruiter/dashboard"
           className="flex w-full items-center gap-2 font-semibold"
         >
           <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -106,6 +111,19 @@ export function RecruiterSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      {user && (
+        <div className="mt-auto border-t p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-medium text-sm">
+              {user.fallback}
+            </div>
+            <div className="flex flex-col overflow-hidden">
+              <span className="truncate text-sm font-medium text-foreground">{user.email}</span>
+              <span className="truncate text-xs text-muted-foreground capitalize">{user.role}</span>
+            </div>
+          </div>
+        </div>
+      )}
       <SidebarRail />
     </Sidebar>
   );

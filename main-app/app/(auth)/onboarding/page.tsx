@@ -38,11 +38,12 @@ export default function OnboardingPage() {
           )}
           <div className="flex items-center gap-3">
             <Label htmlFor="role">I am a...</Label>
-            <Select name="role" required defaultValue="recruiter">
+            <Select name="role" required defaultValue="student">
               <SelectTrigger>
                 <SelectValue placeholder="Select your role" />
               </SelectTrigger>
               <SelectContent alignItemWithTrigger={false} align="start" side="bottom" sideOffset={8}>
+                <SelectItem value="student">Student</SelectItem>
                 <SelectItem value="recruiter">Recruiter</SelectItem>
                 <SelectItem value="interviewer">Interviewer</SelectItem>
               </SelectContent>

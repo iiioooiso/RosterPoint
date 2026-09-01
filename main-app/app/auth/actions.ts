@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/server'
-import { headers } from 'next/headers'
+import { headers, cookies } from 'next/headers'
 
 export async function signInAction(formData: FormData) {
   const email = formData.get('email') as string
@@ -20,6 +20,12 @@ export async function signInAction(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
+  
+  const nextUrl = formData.get('nextUrl') as string
+  if (nextUrl) {
+    redirect(nextUrl)
+  }
+  
   redirect('/dashboard')
 }
 
@@ -32,9 +38,11 @@ export async function signUpAction(formData: FormData) {
   const headersList = await headers()
   const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
-  if (role !== 'recruiter' && role !== 'interviewer') {
+  if (role !== 'recruiter' && role !== 'interviewer' && role !== 'student') {
     return { error: 'Invalid role selected.' }
   }
+
+  const nextUrl = formData.get('nextUrl') as string
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -43,6 +51,7 @@ export async function signUpAction(formData: FormData) {
       emailRedirectTo: `${origin}/auth/confirm`,
       data: {
         role,
+        returnTo: nextUrl || null,
       },
     },
   })
@@ -92,13 +101,18 @@ export async function updatePasswordAction(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  redirect('/dashboard') // This will be intercepted by middleware and redirected to correct dashboard
 }
 
-export async function signInWithGoogleAction() {
+export async function signInWithGoogleAction(nextUrl?: string | null) {
   const supabase = await createClient()
   const headersList = await headers()
   const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+
+  if (nextUrl) {
+    const cookieStore = await cookies()
+    cookieStore.set('oauth_return_to', nextUrl, { path: '/', maxAge: 60 * 10 }) // 10 minutes
+  }
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -119,7 +133,7 @@ export async function signInWithGoogleAction() {
 export async function completeOnboardingAction(formData: FormData) {
   const role = formData.get('role') as string
   
-  if (role !== 'recruiter' && role !== 'interviewer') {
+  if (role !== 'recruiter' && role !== 'interviewer' && role !== 'student') {
     return { error: 'Invalid role selected.' }
   }
 
@@ -139,6 +153,6 @@ export async function completeOnboardingAction(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  return { url: '/dashboard' }
+  return { url: `/${role}/dashboard` }
 }
 

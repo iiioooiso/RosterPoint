@@ -20,12 +20,18 @@ export async function GET(request: NextRequest) {
   if (token_hash && type) {
     const supabase = await createClient()
 
-    const { error } = await supabase.auth.verifyOtp({
+    const { data: { user }, error } = await supabase.auth.verifyOtp({
       type,
       token_hash,
     })
     
     if (!error) {
+      // Check if user has returnTo in metadata
+      const metaReturnTo = user?.user_metadata?.returnTo
+      if (metaReturnTo && metaReturnTo.startsWith('/')) {
+        redirectTo.pathname = metaReturnTo
+      }
+      
       redirectTo.searchParams.delete('next')
       return NextResponse.redirect(redirectTo)
     }

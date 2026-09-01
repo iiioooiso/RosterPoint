@@ -1,9 +1,11 @@
 import { getPublicOpeningById } from "@/app/actions/openings";
+import { hasStudentApplied } from "@/app/actions/applications";
 import { createClient } from "@/lib/server";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { ApplicationForm } from "./application-form";
 import type { Metadata, ResolvingMetadata } from "next";
+import { Card, CardContent } from "@/components/ui/card";
 
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> },
@@ -25,6 +27,9 @@ export default async function CareerDetailPage({ params }: { params: Promise<{ i
   if (!opening) {
     notFound();
   }
+
+  // Check if current user has already applied
+  const alreadyApplied = await hasStudentApplied(id);
 
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-3xl mx-auto">
@@ -89,14 +94,17 @@ export default async function CareerDetailPage({ params }: { params: Promise<{ i
           </div>
         )}
         
-        <div className="pt-6 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div>
-            <h3 className="font-medium text-foreground">Ready to apply?</h3>
-            <p className="text-muted-foreground text-sm mt-1">Join us in building the future.</p>
-          </div>
-          <Button className="w-full sm:w-auto px-6 shadow-sm">
-            Apply Now
-          </Button>
+        <div className="pt-6 border-t" id="apply">
+          {alreadyApplied ? (
+            <Card className="bg-muted/40">
+              <CardContent className="pt-6 text-center space-y-2">
+                <p className="font-medium text-foreground">You have already applied for this position.</p>
+                <p className="text-sm text-muted-foreground">Check your dashboard for status updates.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <ApplicationForm openingId={id} />
+          )}
         </div>
       </div>
     </div>

@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/server'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/dashboard'
+  
+  const cookieStore = await cookies()
+  const cookieNext = cookieStore.get('oauth_return_to')?.value
+  const next = searchParams.get('next') ?? cookieNext ?? '/dashboard'
 
   // Safety: Prevent open redirects
   const isInternal = next.startsWith('/') && !next.startsWith('//')
@@ -15,7 +19,9 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error) {
-      return NextResponse.redirect(`${origin}${safeNext}`)
+      const response = NextResponse.redirect(`${origin}${safeNext}`)
+      response.cookies.delete('oauth_return_to')
+      return response
     }
   }
 

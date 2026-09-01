@@ -21,12 +21,14 @@ export const metadata: Metadata = {
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CookieConsent } from "@/components/cookie-consent";
 import { ServiceWorkerUnregister } from "@/components/service-worker";
+import { ThemeProvider } from "@/components/theme-provider";
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <head />
       <body className="min-h-full flex flex-col">

@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useState, useTransition } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { signUpAction, signInWithGoogleAction } from '@/app/auth/actions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
@@ -13,6 +14,10 @@ function SignupContent() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  
+  const searchParams = useSearchParams()
+  const returnTo = searchParams.get('returnTo') || searchParams.get('next')
+  const isInterviewerInvite = returnTo?.startsWith('/invite/interviewer/')
 
   const handleSubmit = async (formData: FormData) => {
     setError(null)
@@ -24,6 +29,10 @@ function SignupContent() {
     if (password !== confirmPassword) {
       setError("Passwords do not match")
       return
+    }
+
+    if (returnTo) {
+      formData.append('nextUrl', returnTo)
     }
 
     startTransition(async () => {
@@ -41,7 +50,7 @@ function SignupContent() {
     setSuccess(null)
     
     // Do not use startTransition for external redirects
-    const result = await signInWithGoogleAction()
+    const result = await signInWithGoogleAction(returnTo)
     
     if (result?.error) {
       setError(result.error)
@@ -82,15 +91,23 @@ function SignupContent() {
           </div>
           <div className="flex items-center gap-3">
             <Label htmlFor="role">I am a...</Label>
-            <Select name="role" required defaultValue="recruiter">
-              <SelectTrigger>
-                <SelectValue placeholder="Select your role" />
-              </SelectTrigger>
-              <SelectContent alignItemWithTrigger={false} align="start" side="bottom" sideOffset={8}>
-                <SelectItem value="recruiter">Recruiter</SelectItem>
-                <SelectItem value="interviewer">Interviewer</SelectItem>
-              </SelectContent>
-            </Select>
+            {isInterviewerInvite ? (
+              <>
+                <Input value="Interviewer" disabled className="bg-muted text-muted-foreground flex-1" />
+                <input type="hidden" name="role" value="interviewer" />
+              </>
+            ) : (
+              <Select name="role" required defaultValue="student">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your role" />
+                </SelectTrigger>
+                <SelectContent alignItemWithTrigger={false} align="start" side="bottom" sideOffset={8}>
+                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="recruiter">Recruiter</SelectItem>
+                  <SelectItem value="interviewer">Interviewer</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <Button type="submit" className="w-full mt-2" disabled={isPending || success !== null}>
             {isPending ? "Signing up..." : "Sign up"}
@@ -116,7 +133,7 @@ function SignupContent() {
         <CardFooter className="flex justify-center border-t py-4">
           <div className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/login" className="underline underline-offset-4 hover:text-primary">
+            <Link href={returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : "/login"} className="underline underline-offset-4 hover:text-primary">
               Log in
             </Link>
           </div>

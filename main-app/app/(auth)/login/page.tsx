@@ -1,8 +1,8 @@
 'use client'
 
 import { Suspense, useState, useTransition } from 'react'
-import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { signInAction, signInWithGoogleAction } from '@/app/auth/actions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -12,11 +12,17 @@ import { Button } from '@/components/ui/button'
 function LoginContent() {
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  
   const searchParams = useSearchParams()
+  const returnTo = searchParams.get('returnTo') || searchParams.get('next')
   const urlError = searchParams.get('error')
 
   const handleSubmit = async (formData: FormData) => {
     setError(null)
+    if (returnTo) {
+      formData.append('nextUrl', returnTo)
+    }
+
     startTransition(async () => {
       const result = await signInAction(formData)
       if (result?.error) {
@@ -29,7 +35,7 @@ function LoginContent() {
     setError(null)
     
     // Do not use startTransition for external redirects
-    const result = await signInWithGoogleAction()
+    const result = await signInWithGoogleAction(returnTo)
     
     if (result?.error) {
       setError(result.error)
@@ -88,7 +94,7 @@ function LoginContent() {
         <CardFooter className="flex justify-center border-t py-4">
           <div className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="underline underline-offset-4 hover:text-primary">
+            <Link href={returnTo ? `/signup?returnTo=${encodeURIComponent(returnTo)}` : "/signup"} className="underline underline-offset-4 hover:text-primary">
               Sign up
             </Link>
           </div>
