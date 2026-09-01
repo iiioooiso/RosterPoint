@@ -2,12 +2,12 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 const publicRoutes = [
-  '/', 
-  '/login', 
-  '/signup', 
-  '/forgot-password', 
-  '/reset-password', 
-  '/auth/confirm', 
+  '/',
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/reset-password',
+  '/auth/confirm',
   '/auth/callback',
   '/invite'
 ]
@@ -40,7 +40,7 @@ export async function updateSession(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
-  
+
   // Check if route is public
   const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'))
 
@@ -97,7 +97,7 @@ export async function updateSession(request: NextRequest) {
         url.pathname = roleDashboard
         return NextResponse.redirect(url)
       }
-      
+
       // Enforce role-based access for protected routes
       // If the path starts with /recruiter, /student, or /interviewer, ensure they match the user's role
       const topLevelRoute = pathname.split('/')[1]

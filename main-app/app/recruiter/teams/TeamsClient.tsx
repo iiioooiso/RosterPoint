@@ -225,11 +225,9 @@ export function TeamsClient({ initialDepartments, initialInvitations, initialRul
                     <TableCell>
                       {(!inv.invited_email && inv.joined_count > 0) ? (
                         <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="link" className="p-0 h-auto font-medium text-blue-600 hover:text-blue-800">
+                            <DialogTrigger render={<Button variant="link" className="p-0 h-auto font-medium text-blue-600 hover:text-blue-800" />}>
                               {inv.joined_count} Joined
-                            </Button>
-                          </DialogTrigger>
+                            </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
                               <DialogTitle>Joined Interviewers</DialogTitle>

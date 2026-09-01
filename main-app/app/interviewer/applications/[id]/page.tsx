@@ -2,7 +2,8 @@ import { createClient } from "@/lib/server"
 import { notFound, redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { DownloadDocument } from "@/app/recruiter/applicants/[id]/applicant-actions"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import Link from "next/link"
 
 export default async function InterviewerApplicantDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -35,12 +36,10 @@ export default async function InterviewerApplicantDetailPage({ params }: { param
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <div className="mb-4">
-            <Button variant="outline" size="sm" asChild className="gap-1">
-              <Link href="/interviewer/applications">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                Back to Applications
-              </Link>
-            </Button>
+            <Link href="/interviewer/applications" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1")}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              Back to Applications
+            </Link>
           </div>
           <h1 className="text-3xl font-semibold tracking-tight">Applicant #{application.student_id.substring(0, 8)}</h1>
           <p className="text-muted-foreground">

@@ -135,7 +135,7 @@ function CreatePageClientInner({ initialOpenings }: { initialOpenings: Opening[]
             />
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+            <Select value={departmentFilter} onValueChange={(val: any) => setDepartmentFilter(val)}>
               <SelectTrigger className="flex-1 sm:w-[180px]">
                 <SelectValue placeholder="Department" />
               </SelectTrigger>
@@ -145,7 +145,7 @@ function CreatePageClientInner({ initialOpenings }: { initialOpenings: Opening[]
               </SelectContent>
             </Select>
             {types.length > 0 && (
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <Select value={typeFilter} onValueChange={(val: any) => setTypeFilter(val)}>
                 <SelectTrigger className="flex-1 sm:w-[150px]">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
