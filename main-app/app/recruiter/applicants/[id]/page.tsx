@@ -35,7 +35,9 @@ export default async function ApplicantDetailPage({ params }: { params: Promise<
               Back to Applicants
             </Button>
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight">Applicant #{application.student_id.substring(0, 8)}</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {application.candidate_name || 'Unknown Candidate'} (#{application.id.substring(0, 8)})
+          </h1>
           <p className="text-muted-foreground">
             {/* @ts-ignore */}
             Applied for <span className="font-medium text-foreground">{application.opening?.title}</span> on {new Date(application.created_at).toLocaleDateString()}

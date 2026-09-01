@@ -16,6 +16,7 @@ export default async function ApplicantsPage() {
       created_at, 
       stage, 
       student_id,
+      candidate_name,
       opening:openings(id, title, department)
     `)
     .order('created_at', { ascending: false })
@@ -49,9 +50,9 @@ export default async function ApplicantsPage() {
               <div key={app.id} className="grid grid-cols-12 gap-4 p-4 items-center text-sm">
                 <div className="col-span-3 font-medium flex items-center">
                   <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center mr-3 shrink-0">
-                    {app.student_id.substring(0, 2).toUpperCase()}
+                    {(app.candidate_name || app.id).substring(0, 2).toUpperCase()}
                   </div>
-                  <span className="truncate">Applicant #{app.student_id.substring(0, 6)}</span>
+                  <span className="truncate">{app.candidate_name || 'Unknown Candidate'} (#{app.id.substring(0, 8)})</span>
                 </div>
                 <div className="col-span-3 text-muted-foreground truncate">
                   {/* @ts-ignore - Supabase types might not deeply infer joined table arrays/objects correctly depending on setup */}

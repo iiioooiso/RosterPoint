@@ -137,6 +137,14 @@ export async function completeOnboardingAction(formData: FormData) {
     return { error: 'Invalid role selected.' }
   }
 
+  const name = formData.get('name') as string
+  const ageStr = formData.get('age') as string
+  const age = ageStr ? parseInt(ageStr, 10) : null
+  const sex = formData.get('sex') as string
+  const university_name = formData.get('university_name') as string
+  const company_name = formData.get('company_name') as string
+  const job_title = formData.get('job_title') as string
+
   const supabase = await createClient()
   
   // Verify authenticated user
@@ -146,7 +154,15 @@ export async function completeOnboardingAction(formData: FormData) {
   }
 
   // Call the secure RPC to create the profile atomically
-  const { error } = await supabase.rpc('create_user_profile', { user_role: role })
+  const { error } = await supabase.rpc('create_user_profile', { 
+    user_role: role,
+    p_name: name || null,
+    p_age: age || null,
+    p_sex: sex || null,
+    p_university_name: university_name || null,
+    p_company_name: company_name || null,
+    p_job_title: job_title || null
+  })
 
   if (error) {
     return { error: error.message || 'Failed to complete onboarding.' }
