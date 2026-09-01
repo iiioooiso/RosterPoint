@@ -57,6 +57,31 @@ export async function submitApplication(openingId: string, formData: FormData) {
     return { error: 'Failed to upload resume. Please try again.' }
   }
 
+  // 1.5 Evaluate Routing Rules
+  const { data: opening } = await supabase
+    .from('openings')
+    .select('department, recruiter_id')
+    .eq('id', openingId)
+    .single();
+
+  let routedDeptId = null;
+  if (opening) {
+    const { data: rules } = await supabase
+      .from('routing_rules')
+      .select('department_id, conditions')
+      .eq('recruiter_id', opening.recruiter_id)
+      .eq('is_active', true);
+
+    const matchingRule = rules?.find(rule => {
+      const conditions = rule.conditions as any[];
+      return Array.isArray(conditions) && conditions.some(c => c.field === 'opening_department' && c.value === opening.department);
+    });
+
+    if (matchingRule) {
+      routedDeptId = matchingRule.department_id;
+    }
+  }
+
   // 2. Create the application record
   const { data: application, error: appError } = await supabase
     .from('applications')
@@ -64,6 +89,7 @@ export async function submitApplication(openingId: string, formData: FormData) {
       student_id: user.id,
       opening_id: openingId,
       stage: 'applied',
+      routed_department_id: routedDeptId
     })
     .select()
     .single()

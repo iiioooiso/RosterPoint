@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
 import { Copy, Plus, Users, ShieldAlert, GitMerge, Link, Trash, Power, PowerOff } from 'lucide-react'
-import { createDepartment, generateInvitation, revokeInvitation, reactivateInvitation, deleteInvitation } from "@/app/actions/teams"
+import { createDepartment, generateInvitation, revokeInvitation, reactivateInvitation, deleteInvitation, createRoutingRule, deleteRoutingRule } from "@/app/actions/teams"
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect } from 'react'
 
-export function TeamsClient({ initialDepartments, initialInvitations, initialRules }: any) {
+export function TeamsClient({ initialDepartments, initialInvitations, initialRules, openingDepartments = [] }: any) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const currentTab = searchParams.get('tab') || 'departments'
@@ -21,11 +23,17 @@ export function TeamsClient({ initialDepartments, initialInvitations, initialRul
   const [invitations, setInvitations] = useState(initialInvitations)
   const [rules, setRules] = useState(initialRules)
 
+  // Sync state with props when Server Action revalidates
+  useEffect(() => { setRules(initialRules) }, [initialRules])
+  useEffect(() => { setDepartments(initialDepartments) }, [initialDepartments])
+  useEffect(() => { setInvitations(initialInvitations) }, [initialInvitations])
+
   const [newDeptName, setNewDeptName] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteDept, setInviteDept] = useState('')
   const [expiresInDays, setExpiresInDays] = useState(1)
   const [generatedLink, setGeneratedLink] = useState('')
+  const [newRule, setNewRule] = useState({ openingDept: '', targetDeptId: '' })
 
   const formatDate = (dateString: string) => {
     try {
@@ -40,9 +48,24 @@ export function TeamsClient({ initialDepartments, initialInvitations, initialRul
     if (!newDeptName) return
     const res = await createDepartment(newDeptName)
     if (res.data) {
-      setDepartments([...departments, res.data])
       setNewDeptName('')
+      // State is synced via useEffect
     }
+  }
+
+  const handleCreateRule = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newRule.openingDept || !newRule.targetDeptId) return
+    const conditions = [{ field: 'opening_department', operator: 'equals', value: newRule.openingDept }]
+    const action = { type: 'route_to_department', department_id: newRule.targetDeptId }
+    const name = `Route ${newRule.openingDept}`
+    
+    await createRoutingRule(newRule.targetDeptId, name, conditions, action)
+    setNewRule({ openingDept: '', targetDeptId: '' })
+  }
+
+  const handleDeleteRule = async (id: string) => {
+    await deleteRoutingRule(id)
   }
 
   const handleGenerateInvite = async (e: React.FormEvent) => {
@@ -247,14 +270,80 @@ export function TeamsClient({ initialDepartments, initialInvitations, initialRul
         <Card>
           <CardHeader>
             <CardTitle>Routing Rules</CardTitle>
-            <CardDescription>Configure rules to route candidates to the appropriate departments.</CardDescription>
+            <CardDescription>Configure rules to route candidates to the appropriate departments automatically.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="py-8 text-center text-muted-foreground">
-              <GitMerge className="h-12 w-12 mx-auto mb-4 opacity-20" />
-              <p>Routing rules engine is ready for configuration.</p>
-              <p className="text-sm">Future updates will allow complex rule building here.</p>
-            </div>
+          <CardContent className="space-y-6">
+            <form onSubmit={handleCreateRule} className="flex gap-4 items-end">
+              <div className="space-y-2 flex-1">
+                <Label htmlFor="openingDept">IF Opening Department is</Label>
+                <select
+                  id="openingDept"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={newRule.openingDept}
+                  onChange={(e) => setNewRule({ ...newRule, openingDept: e.target.value })}
+                  required
+                >
+                  <option value="" disabled>Select Opening Department...</option>
+                  {openingDepartments.map((dept: string) => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2 flex-1">
+                <Label htmlFor="targetDept">THEN Assign to</Label>
+                <select
+                  id="targetDept"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={newRule.targetDeptId}
+                  onChange={(e) => setNewRule({ ...newRule, targetDeptId: e.target.value })}
+                  required
+                >
+                  <option value="" disabled>Select Interview Team...</option>
+                  {departments.map((d: any) => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+              </div>
+              <Button type="submit" className="gap-2">
+                <Plus className="h-4 w-4" /> Create Rule
+              </Button>
+            </form>
+
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Rule Name</TableHead>
+                  <TableHead>Condition</TableHead>
+                  <TableHead>Target Department</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rules.map((rule: any) => {
+                  const openingDept = rule.conditions?.[0]?.value || 'Unknown'
+                  const targetDept = departments.find((d: any) => d.id === rule.department_id)?.name || 'Unknown Team'
+                  return (
+                    <TableRow key={rule.id}>
+                      <TableCell className="font-medium">{rule.name}</TableCell>
+                      <TableCell>Opening is <Badge variant="outline">{openingDept}</Badge></TableCell>
+                      <TableCell>{targetDept}</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteRule(rule.id)} title="Delete Rule">
+                          <Trash className="h-4 w-4 text-red-600" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+                {rules.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      No routing rules configured. Create one above.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       </TabsContent>

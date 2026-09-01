@@ -16,10 +16,18 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error) {
-      const response = NextResponse.redirect(`${origin}${safeNext}`)
+      let finalNext = safeNext
+      
+      // Check if user has returnTo in metadata from email signup
+      const metaReturnTo = data.user?.user_metadata?.returnTo
+      if (metaReturnTo && metaReturnTo.startsWith('/')) {
+        finalNext = metaReturnTo
+      }
+
+      const response = NextResponse.redirect(`${origin}${finalNext}`)
       response.cookies.delete('oauth_return_to')
       return response
     }

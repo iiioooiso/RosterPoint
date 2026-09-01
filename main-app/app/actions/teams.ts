@@ -19,9 +19,12 @@ export async function getDepartments() {
 
 export async function createDepartment(name: string) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authorized' }
+  
   const { data, error } = await supabase
     .from('departments')
-    .insert([{ name }])
+    .insert([{ name, recruiter_id: user.id }])
     .select()
     .single()
 
@@ -176,9 +179,23 @@ export async function getRoutingRules() {
 
 export async function createRoutingRule(departmentId: string, name: string, conditions: any, action: any) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authorized' }
+  
+  const openingDept = conditions?.find((c: any) => c.field === 'opening_department')?.value;
+  if (openingDept) {
+    const { data: existingRules } = await supabase.from('routing_rules').select('id, conditions');
+    const conflictingRule = existingRules?.find(r => 
+      Array.isArray(r.conditions) && r.conditions.some((c: any) => c.field === 'opening_department' && c.value === openingDept)
+    );
+    if (conflictingRule) {
+      await supabase.from('routing_rules').delete().eq('id', conflictingRule.id);
+    }
+  }
+
   const { data, error } = await supabase
     .from('routing_rules')
-    .insert([{ department_id: departmentId, name, conditions, action }])
+    .insert([{ department_id: departmentId, name, conditions, action, recruiter_id: user.id }])
     .select()
     .single()
 

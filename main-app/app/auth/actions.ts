@@ -48,7 +48,7 @@ export async function signUpAction(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: `${origin}/auth/confirm`,
+      emailRedirectTo: `${origin}/auth/callback`,
       data: {
         role,
         returnTo: nextUrl || null,
