@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/server"
-import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
@@ -7,11 +6,6 @@ import { buttonVariants } from "@/components/ui/button"
 
 export default async function InterviewerApplicationsPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect("/login")
-  }
 
   // Interviewer RLS policy handles filtering strictly to only those applications
   // routed to a department the interviewer is a member of.

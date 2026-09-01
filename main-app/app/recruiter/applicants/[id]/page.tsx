@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/server"
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { ApplicantActions, DownloadDocument, NotesForm } from "./applicant-actions"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -8,11 +8,6 @@ import Link from "next/link"
 export default async function ApplicantDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect("/login")
-  }
 
   // Fetch application details
   const { data: application, error } = await supabase
