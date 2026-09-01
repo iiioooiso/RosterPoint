@@ -17,7 +17,7 @@ import { useEffect } from 'react'
 export function TeamsClient({ initialDepartments, initialInvitations, initialRules, openingDepartments = [] }: any) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const currentTab = searchParams.get('tab') || 'departments'
+  const [currentTab, setCurrentTab] = useState(searchParams.get('tab') || 'departments')
 
   const [departments, setDepartments] = useState(initialDepartments)
   const [invitations, setInvitations] = useState(initialInvitations)
@@ -114,9 +114,10 @@ export function TeamsClient({ initialDepartments, initialInvitations, initialRul
   }
 
   const handleTabChange = (value: string) => {
+    setCurrentTab(value)
     const params = new URLSearchParams(searchParams.toString())
     params.set('tab', value)
-    router.push(`?${params.toString()}`, { scroll: false })
+    window.history.replaceState(null, '', `?${params.toString()}`)
   }
 
   return (

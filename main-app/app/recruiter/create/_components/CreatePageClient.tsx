@@ -27,10 +27,10 @@ function CreatePageClientInner({ initialOpenings }: { initialOpenings: Opening[]
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const view = (searchParams.get("view") as ViewState) || "list";
-  const idParam = searchParams.get("id");
+  const [viewState, setViewState] = useState<ViewState>((searchParams.get("view") as ViewState) || "list");
+  const [idState, setIdState] = useState<string | null>(searchParams.get("id"));
   const openings = initialOpenings;
-  const selectedOpening = idParam ? openings.find(o => o.id === idParam) || null : null;
+  const selectedOpening = idState ? openings.find(o => o.id === idState) || null : null;
 
   // Filter & Sort States
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,6 +43,8 @@ function CreatePageClientInner({ initialOpenings }: { initialOpenings: Opening[]
   const types = Array.from(new Set(openings.map(o => o.type).filter(Boolean) as string[])).sort();
 
   const setView = (newView: ViewState, id?: string) => {
+    setViewState(newView);
+    setIdState(id || null);
     const params = new URLSearchParams(searchParams);
     if (newView === "list") {
       params.delete("view");
@@ -52,7 +54,7 @@ function CreatePageClientInner({ initialOpenings }: { initialOpenings: Opening[]
       if (id) params.set("id", id);
       else params.delete("id");
     }
-    router.push(`${pathname}?${params.toString()}`);
+    window.history.replaceState(null, '', `${pathname}?${params.toString()}`);
   };
 
   const handleCreateNew = () => {
@@ -71,17 +73,17 @@ function CreatePageClientInner({ initialOpenings }: { initialOpenings: Opening[]
     setView("list");
   };
 
-  if (view === "create" || view === "edit") {
+  if (viewState === "create" || viewState === "edit") {
     return (
       <OpeningForm
-        opening={view === "edit" ? selectedOpening : null}
+        opening={viewState === "edit" ? selectedOpening : null}
         onCancel={handleBackToList}
         onSuccess={() => handleBackToList()} // Just back to list; server revalidation updates data
       />
     );
   }
 
-  if (view === "detail" && selectedOpening) {
+  if (viewState === "detail" && selectedOpening) {
     return (
       <OpeningDetailView
         opening={selectedOpening}

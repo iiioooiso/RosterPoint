@@ -91,7 +91,7 @@ export function RecruiterSidebar({ user }: { user?: { email: string, role: strin
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
-                      render={<Link href={item.url} />}
+                      render={<Link href={item.url} prefetch={true} />}
                       isActive={isActive}
                       tooltip={item.title}
                       className="h-10 transition-colors"

@@ -52,7 +52,7 @@ export function InterviewerSidebar({ user }: { user: any }) {
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    render={<Link href={item.url} />}
+                    render={<Link href={item.url} prefetch={true} />}
                     isActive={pathname === item.url}
                     className="text-foreground hover:bg-muted"
                   >
