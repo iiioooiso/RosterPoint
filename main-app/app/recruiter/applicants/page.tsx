@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export default async function ApplicantsPage() {
   const supabase = await createClient()
@@ -62,14 +63,22 @@ export default async function ApplicantsPage() {
                   {new Date(app.created_at).toLocaleDateString()}
                 </div>
                 <div className="col-span-2">
-                  <Badge variant="outline" className="capitalize">
+                  <span className={cn(
+                    "px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize",
+                    app.stage === 'applied' && "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900",
+                    app.stage === 'screening' && "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900",
+                    app.stage === 'interview' && "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900",
+                    app.stage === 'offer' && "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900",
+                    app.stage === 'hired' && "bg-green-100 text-green-800 border-green-300 dark:bg-green-950/50 dark:text-green-300 dark:border-green-800",
+                    app.stage === 'rejected' && "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900"
+                  )}>
                     {app.stage}
-                  </Badge>
+                  </span>
                 </div>
                 <div className="col-span-2 text-right flex justify-end">
                   <Link 
                     href={`/recruiter/applicants/${app.id}`}
-                    className={buttonVariants({ variant: "ghost", size: "sm" })}
+                    className={cn(buttonVariants({ variant: "outline", size: "sm" }), "text-xs h-8")}
                   >
                     View Details
                   </Link>

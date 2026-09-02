@@ -2,12 +2,15 @@
 
 import { useActionState, useEffect, useRef, useState } from 'react'
 import { submitApplication } from '@/app/actions/applications'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useRouter } from 'next/navigation'
 import { Opening, ApplicationMaterials } from '@/lib/types'
+import { cn } from '@/lib/utils'
+import { ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 
 export function ApplicationForm({ opening }: { opening: Opening }) {
   const router = useRouter()
@@ -45,12 +48,23 @@ export function ApplicationForm({ opening }: { opening: Opening }) {
 
   if (success) {
     return (
-      <div className="bg-green-50/50 border border-green-200 rounded-lg p-8 mt-4 text-center space-y-3">
-        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto text-green-600">
+      <div className="bg-green-50/50 border border-green-200 dark:border-green-900/50 dark:bg-green-950/20 rounded-lg p-8 mt-4 text-center space-y-4">
+        <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mx-auto text-green-600 dark:text-green-400">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </div>
-        <h3 className="text-lg font-medium text-green-800">Application Submitted</h3>
-        <p className="text-green-700 text-sm max-w-sm mx-auto">We've received your application and will be in touch soon regarding next steps.</p>
+        <div className="space-y-1">
+          <h3 className="text-lg font-semibold text-green-800 dark:text-green-300">Application Submitted</h3>
+          <p className="text-green-700 dark:text-green-400 text-sm max-w-sm mx-auto">We've received your application and will be in touch soon regarding next steps.</p>
+        </div>
+        <div className="pt-2">
+          <Link
+            href="/student/dashboard"
+            className={cn(buttonVariants({ variant: "default", size: "default" }), "gap-2 inline-flex")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Go Back to Dashboard
+          </Link>
+        </div>
       </div>
     )
   }

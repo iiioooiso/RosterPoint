@@ -57,7 +57,7 @@ a text search over candidate name and email, filters for job opening, stage and 
 applied date, stage or last update, and pagination showing the total number of matches. All of this
 must happen on the server — do not load every application into the browser and filter there.
 
-7. **Acting on many candidates at once.** Select several applications from the list and bulk-advance
+7. **Acting on many candidates at once.** Select s  everal applications from the list and bulk-advance
 them to the next stage, or bulk-reject them, in one action. Because some selected applications will
 not be eligible for the move, the result must report per candidate what succeeded and what was
 refused and why, not just fail the whole batch. Separately, export a snapshot of the pipeline —

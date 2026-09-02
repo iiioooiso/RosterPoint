@@ -6,6 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { ApplicationForm } from "./application-form";
 import type { Metadata, ResolvingMetadata } from "next";
 import { Card, CardContent } from "@/components/ui/card";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> },
@@ -99,10 +103,21 @@ export default async function CareerDetailPage({ params }: { params: Promise<{ i
         
         <div className="pt-6 border-t" id="apply">
           {alreadyApplied ? (
-            <Card className="bg-muted/40">
-              <CardContent className="pt-6 text-center space-y-2">
-                <p className="font-medium text-foreground">You have already applied for this position.</p>
-                <p className="text-sm text-muted-foreground">Check your dashboard for status updates.</p>
+            <Card className="bg-muted/30 border border-border/80">
+              <CardContent className="py-8 text-center space-y-4">
+                <div className="space-y-1.5">
+                  <p className="font-semibold text-foreground text-base">You have already applied for this position.</p>
+                  <p className="text-sm text-muted-foreground">Check your dashboard for status updates and submitted applications.</p>
+                </div>
+                <div className="pt-2">
+                  <Link
+                    href="/student/dashboard"
+                    className={cn(buttonVariants({ variant: "default", size: "default" }), "gap-2 inline-flex")}
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Go Back to Dashboard
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           ) : (

@@ -59,7 +59,20 @@ export interface Opening {
   application_materials: ApplicationMaterials;
 }
 
-export type ApplicationStage = "applied" | "screening" | "interview" | "offer" | "hired" | "rejected" | "withdrawn";
+export type ApplicationStage = "applied" | "screening" | "interview" | "offer" | "hired" | "rejected";
+
+export interface CandidateResponseQuestion {
+  id?: string;
+  title: string;
+  answer: string;
+  type?: string;
+}
+
+export interface CandidateResponses {
+  portfolio?: string | null;
+  cover_letter?: string | null;
+  questions?: CandidateResponseQuestion[];
+}
 
 export interface Application {
   id: string;
@@ -73,6 +86,7 @@ export interface Application {
   candidate_name: string | null;
   candidate_email: string | null;
   source: string | null;
+  candidate_responses?: CandidateResponses | null;
 }
 
 export interface ApplicationInterviewer {
