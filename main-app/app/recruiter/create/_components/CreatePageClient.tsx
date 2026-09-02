@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Opening } from "@/lib/types";
+import { getOpeningById } from "@/app/actions/openings";
 import { OpeningsList } from "./OpeningsList";
 import { OpeningForm } from "./OpeningForm";
 import { OpeningDetailView } from "./OpeningDetailView";
@@ -10,13 +11,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Loader2, ArrowLeft } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 type ViewState = "list" | "create" | "edit" | "detail";
 
 export function CreatePageClient({ initialOpenings }: { initialOpenings: Opening[] }) {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />Loading openings...</div>}>
       <CreatePageClientInner initialOpenings={initialOpenings} />
     </Suspense>
   );
@@ -29,8 +31,40 @@ function CreatePageClientInner({ initialOpenings }: { initialOpenings: Opening[]
 
   const [viewState, setViewState] = useState<ViewState>((searchParams.get("view") as ViewState) || "list");
   const [idState, setIdState] = useState<string | null>(searchParams.get("id"));
-  const openings = initialOpenings;
-  const selectedOpening = idState ? openings.find(o => o.id === idState) || null : null;
+  const [openings, setOpenings] = useState<Opening[]>(initialOpenings);
+  const [directOpening, setDirectOpening] = useState<Opening | null>(null);
+  const [loadingOpening, setLoadingOpening] = useState(false);
+
+  // Sync state when URL params change
+  useEffect(() => {
+    const currentView = (searchParams.get("view") as ViewState) || "list";
+    const currentId = searchParams.get("id");
+    setViewState(currentView);
+    setIdState(currentId);
+
+    if (currentId) {
+      const match = initialOpenings.find(o => o.id === currentId);
+      if (match) {
+        setDirectOpening(match);
+      } else {
+        setLoadingOpening(true);
+        getOpeningById(currentId)
+          .then((data) => {
+            if (data) {
+              setDirectOpening(data);
+            }
+            setLoadingOpening(false);
+          })
+          .catch(() => {
+            setLoadingOpening(false);
+          });
+      }
+    } else {
+      setDirectOpening(null);
+    }
+  }, [searchParams, initialOpenings]);
+
+  const selectedOpening = directOpening || (idState ? openings.find(o => o.id === idState) || null : null);
 
   // Filter & Sort States
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,7 +79,7 @@ function CreatePageClientInner({ initialOpenings }: { initialOpenings: Opening[]
   const setView = (newView: ViewState, id?: string) => {
     setViewState(newView);
     setIdState(id || null);
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     if (newView === "list") {
       params.delete("view");
       params.delete("id");
@@ -78,18 +112,53 @@ function CreatePageClientInner({ initialOpenings }: { initialOpenings: Opening[]
       <OpeningForm
         opening={viewState === "edit" ? selectedOpening : null}
         onCancel={handleBackToList}
-        onSuccess={() => handleBackToList()} // Just back to list; server revalidation updates data
+        onSuccess={() => handleBackToList()}
       />
     );
   }
 
-  if (viewState === "detail" && selectedOpening) {
+  if (viewState === "detail") {
+    if (loadingOpening) {
+      return (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <Button variant="ghost" size="sm" onClick={handleBackToList} className="gap-2 -ml-2 text-muted-foreground">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Openings
+          </Button>
+          <Card className="p-12 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-3" />
+            <p className="text-sm font-medium text-muted-foreground">Loading opening details...</p>
+          </Card>
+        </div>
+      );
+    }
+
+    if (selectedOpening) {
+      return (
+        <OpeningDetailView
+          opening={selectedOpening}
+          onBack={handleBackToList}
+          onEdit={() => handleEdit(selectedOpening)}
+        />
+      );
+    }
+
     return (
-      <OpeningDetailView
-        opening={selectedOpening}
-        onBack={handleBackToList}
-        onEdit={() => handleEdit(selectedOpening)}
-      />
+      <div className="space-y-6">
+        <Button variant="ghost" size="sm" onClick={handleBackToList} className="gap-2 -ml-2 text-muted-foreground">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Openings
+        </Button>
+        <Card className="p-12 text-center bg-muted/20 border-dashed">
+          <p className="font-semibold text-foreground mb-1">Opening Not Found</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            The opening you requested could not be located or may have been deleted.
+          </p>
+          <Button onClick={handleBackToList} variant="outline" size="sm">
+            Return to Openings List
+          </Button>
+        </Card>
+      </div>
     );
   }
 

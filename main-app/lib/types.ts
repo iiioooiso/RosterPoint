@@ -45,6 +45,8 @@ export interface Opening {
   created_at: string;
   updated_at: string;
   recruiter_id: string;
+  company_id?: string | null;
+  company_name?: string | null;
   title: string;
   department: string;
   description: string;

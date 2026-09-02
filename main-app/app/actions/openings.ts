@@ -147,7 +147,7 @@ export async function getOpenings() {
   
   let query = supabase
     .from("openings")
-    .select("*")
+    .select("*, company:companies(name)")
     .order("created_at", { ascending: false });
 
   if (activeCompanyId) {
@@ -161,7 +161,36 @@ export async function getOpenings() {
     return [];
   }
 
-  return data as Opening[];
+  return (data || []).map((opening: any) => {
+    const rawCompany = opening.company;
+    const companyName = Array.isArray(rawCompany) ? rawCompany[0]?.name : rawCompany?.name;
+    return {
+      ...opening,
+      company_name: companyName || null
+    };
+  }) as Opening[];
+}
+
+export async function getOpeningById(id: string): Promise<Opening | null> {
+  if (!id || id === "undefined" || id === "null") {
+    return null;
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("openings")
+    .select("*, company:companies(name)")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !data) {
+    console.error("Error fetching opening by id:", error?.message || error);
+    return null;
+  }
+
+  const rawCompany = (data as any).company;
+  const companyName = Array.isArray(rawCompany) ? rawCompany[0]?.name : rawCompany?.name;
+  return { ...data, company_name: companyName || null } as Opening;
 }
 
 export async function getPublicOpeningById(id: string) {
