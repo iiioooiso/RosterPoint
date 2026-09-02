@@ -9,8 +9,9 @@ async function getRoleDashboard(): Promise<string> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return '/login'
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  const role = profile?.role || 'student'
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+  if (!profile) return '/onboarding'
+  const role = profile.role || 'student'
   return `/${role}/dashboard`
 }
 
@@ -31,7 +32,7 @@ export async function signInAction(formData: FormData) {
   revalidatePath('/', 'layout')
   
   const nextUrl = formData.get('nextUrl') as string
-  if (nextUrl) {
+  if (nextUrl && nextUrl !== '/dashboard' && nextUrl !== '/') {
     redirect(nextUrl)
   }
   
@@ -53,6 +54,7 @@ export async function signUpAction(formData: FormData) {
   }
 
   const nextUrl = formData.get('nextUrl') as string
+  const validNext = (nextUrl && nextUrl !== '/dashboard' && nextUrl !== '/') ? nextUrl : null
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -61,7 +63,7 @@ export async function signUpAction(formData: FormData) {
       emailRedirectTo: `${origin}/auth/callback`,
       data: {
         role,
-        returnTo: nextUrl || null,
+        returnTo: validNext,
       },
     },
   })
@@ -120,7 +122,7 @@ export async function signInWithGoogleAction(nextUrl?: string | null) {
   const headersList = await headers()
   const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
 
-  if (nextUrl) {
+  if (nextUrl && nextUrl !== '/dashboard' && nextUrl !== '/') {
     const cookieStore = await cookies()
     cookieStore.set('oauth_return_to', nextUrl, { path: '/', maxAge: 60 * 10 }) // 10 minutes
   }

@@ -23,15 +23,19 @@ export async function GET(request: Request) {
       
       // Check if user has returnTo in metadata from email signup
       const metaReturnTo = data.user?.user_metadata?.returnTo
-      if (metaReturnTo && metaReturnTo.startsWith('/')) {
+      if (metaReturnTo && metaReturnTo.startsWith('/') && !metaReturnTo.startsWith('//') && metaReturnTo !== '/dashboard' && metaReturnTo !== '/') {
         finalNext = metaReturnTo
       }
 
-      // If no explicit next URL, resolve dashboard by role
-      if (!finalNext) {
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single()
-        const role = profile?.role || 'student'
-        finalNext = `/${role}/dashboard`
+      // If no explicit next URL or next URL is bare /dashboard or /, resolve dashboard by role
+      if (!finalNext || finalNext === '/dashboard' || finalNext === '/') {
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).maybeSingle()
+        if (!profile) {
+          finalNext = '/onboarding'
+        } else {
+          const role = profile.role || 'student'
+          finalNext = `/${role}/dashboard`
+        }
       }
 
       const response = NextResponse.redirect(`${origin}${finalNext}`)

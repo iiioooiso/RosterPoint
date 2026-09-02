@@ -60,6 +60,11 @@ export async function updateSession(request: NextRequest) {
   if (pathname === '/dashboard') {
     if (user) {
       const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+      if (!profile) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/onboarding'
+        return NextResponse.redirect(url)
+      }
       const role = profile?.role || 'student'
       const url = request.nextUrl.clone()
       url.pathname = `/${role}/dashboard`
@@ -75,7 +80,7 @@ export async function updateSession(request: NextRequest) {
   if (!user && !isPublicRoute && pathname !== '/oauth/consent') {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    if (pathname !== '/') {
+    if (pathname !== '/' && pathname !== '/dashboard') {
       url.searchParams.set('next', pathname)
     }
     return NextResponse.redirect(url)

@@ -17,11 +17,13 @@ export default async function Home(props: Props) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  let dashboardUrl = '/student/dashboard'
+  let dashboardUrl = '/onboarding'
   if (user) {
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    const role = profile?.role || 'student'
-    dashboardUrl = `/${role}/dashboard`
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+    if (profile) {
+      const role = profile.role || 'student'
+      dashboardUrl = `/${role}/dashboard`
+    }
   }
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground font-sans antialiased">

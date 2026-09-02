@@ -184,6 +184,7 @@ export async function getPublicOpeningById(id: string) {
   }
 
   // Flatten company name
-  const companyName = Array.isArray(data.company) ? data.company[0]?.name : data.company?.name;
+  const rawCompany = (data as any).company;
+  const companyName = Array.isArray(rawCompany) ? rawCompany[0]?.name : rawCompany?.name;
   return { ...data, company_name: companyName || null } as Opening & { company_name: string | null };
 }

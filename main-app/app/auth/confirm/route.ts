@@ -27,15 +27,19 @@ export async function GET(request: NextRequest) {
     if (!error && user) {
       // Check if user has returnTo in metadata
       const metaReturnTo = user?.user_metadata?.returnTo
-      if (metaReturnTo && metaReturnTo.startsWith('/')) {
+      if (metaReturnTo && metaReturnTo.startsWith('/') && !metaReturnTo.startsWith('//') && metaReturnTo !== '/dashboard' && metaReturnTo !== '/') {
         redirectTo.pathname = metaReturnTo
-      } else if (safeNext) {
+      } else if (safeNext && safeNext !== '/dashboard' && safeNext !== '/') {
         redirectTo.pathname = safeNext
       } else {
         // Resolve dashboard by role
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-        const role = profile?.role || 'student'
-        redirectTo.pathname = `/${role}/dashboard`
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+        if (!profile) {
+          redirectTo.pathname = '/onboarding'
+        } else {
+          const role = profile.role || 'student'
+          redirectTo.pathname = `/${role}/dashboard`
+        }
       }
       
       redirectTo.searchParams.delete('next')

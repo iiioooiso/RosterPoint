@@ -5,6 +5,12 @@ import Link from "next/link"
 import { ApplicationsSheet } from "./applications-sheet"
 import { CompanySelector } from "./company-selector"
 
+function getCompanyName(company: any): string {
+  if (!company) return "Unknown Company"
+  if (Array.isArray(company)) return company[0]?.name || "Unknown Company"
+  return company.name || "Unknown Company"
+}
+
 export default async function StudentDashboardPage({
   searchParams,
 }: {
@@ -40,7 +46,7 @@ export default async function StudentDashboardPage({
       if (!uniqueCompaniesMap.has(opening.company_id)) {
         uniqueCompaniesMap.set(opening.company_id, {
           id: opening.company_id,
-          name: Array.isArray(opening.company) ? opening.company[0]?.name : opening.company?.name
+          name: getCompanyName(opening.company)
         })
       }
     }
@@ -96,7 +102,7 @@ export default async function StudentDashboardPage({
                     <div className="space-y-1">
                       <h3 className="text-base font-medium group-hover:text-primary transition-colors">{opening.title}</h3>
                       <CardDescription>
-                        {opening.department} • {(Array.isArray(opening.company) ? opening.company[0]?.name : opening.company?.name) || 'Unknown Company'}
+                        {opening.department} • {getCompanyName(opening.company)}
                       </CardDescription>
                     </div>
                   </CardHeader>
