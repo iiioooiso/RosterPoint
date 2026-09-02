@@ -1,8 +1,14 @@
-export default function InterviewerDashboard() {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-muted/20">
-      <h1 className="text-3xl font-bold tracking-tight">Interviewer Dashboard</h1>
-      <p className="text-muted-foreground mt-2">This is the interviewer dashboard.</p>
-    </div>
-  );
+import { getAssignedApplications, getSubmittedFeedback } from "@/app/actions/interviewer-data";
+import { DashboardClient } from "./DashboardClient";
+
+export default async function InterviewerDashboard() {
+  const [applicationsResult, feedbackResult] = await Promise.all([
+    getAssignedApplications(),
+    getSubmittedFeedback()
+  ]);
+
+  const applications = applicationsResult.applications || [];
+  const feedback = feedbackResult.feedback || [];
+
+  return <DashboardClient applications={applications} feedback={feedback} />;
 }

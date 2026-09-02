@@ -19,8 +19,8 @@ import { useRouter } from "next/navigation";
 
 const navItems = [
   {
-    title: "Applications",
-    url: "/interviewer/applications",
+    title: "Dashboard",
+    url: "/interviewer/dashboard",
     icon: Users,
   }
 ];
