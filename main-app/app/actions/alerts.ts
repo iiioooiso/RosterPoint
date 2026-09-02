@@ -2,6 +2,12 @@
 
 import { createClient } from '@/lib/server'
 import { revalidatePath } from 'next/cache'
+import { cookies } from "next/headers"
+
+async function getActiveCompanyId() {
+  const cookieStore = await cookies();
+  return cookieStore.get('cx_active_company')?.value;
+}
 
 export async function getAlerts() {
   const supabase = await createClient()
@@ -16,19 +22,27 @@ export async function getAlerts() {
   tenDaysAgo.setDate(tenDaysAgo.getDate() - 10)
 
   // Fetch stalled applications where stage is active
-  const { data, error } = await supabase
+  const activeCompanyId = await getActiveCompanyId();
+
+  let query = supabase
     .from('applications')
     .select(`
       id,
       stage,
       stage_updated_at,
       candidate_name,
-      opening:openings(id, title),
+      opening:openings!inner(id, title, company_id),
       alert_dismissals(application_id)
     `)
     .lte('stage_updated_at', tenDaysAgo.toISOString())
     .not('stage', 'in', '("rejected","withdrawn")')
-    .order('stage_updated_at', { ascending: true })
+    .order('stage_updated_at', { ascending: true });
+
+  if (activeCompanyId) {
+    query = query.eq('opening.company_id', activeCompanyId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching alerts:", error)
@@ -61,14 +75,23 @@ export async function getAlertsCount() {
 
   // We can't cleanly do a count with a joined NOT EXISTS filter just using the standard JS client .count() easily
   // without getting the rows. Given this is a dashboard, fetching the IDs is lightweight enough.
-  const { data, error } = await supabase
+  const activeCompanyId = await getActiveCompanyId();
+  
+  let query = supabase
     .from('applications')
     .select(`
       id,
+      opening:openings!inner(id, company_id),
       alert_dismissals(application_id)
     `)
     .lte('stage_updated_at', tenDaysAgo.toISOString())
-    .not('stage', 'in', '("rejected","withdrawn")')
+    .not('stage', 'in', '("rejected","withdrawn")');
+
+  if (activeCompanyId) {
+    query = query.eq('opening.company_id', activeCompanyId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching alerts count:", error)

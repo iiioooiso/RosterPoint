@@ -1,6 +1,12 @@
 'use server'
 
 import { createClient } from '@/lib/server'
+import { cookies } from "next/headers"
+
+async function getActiveCompanyId() {
+  const cookieStore = await cookies();
+  return cookieStore.get('cx_active_company')?.value;
+}
 
 export async function getAssignmentsData(searchParams: { [key: string]: string | string[] | undefined }) {
   const supabase = await createClient()
@@ -13,6 +19,8 @@ export async function getAssignmentsData(searchParams: { [key: string]: string |
   const page = typeof searchParams.page === 'string' ? parseInt(searchParams.page, 10) : 1
   const pageSize = 20
   
+  const activeCompanyId = await getActiveCompanyId();
+
   // Base query: applications joined with openings and interviewers
   let dbQuery: any = supabase
     .from('applications')
@@ -22,12 +30,21 @@ export async function getAssignmentsData(searchParams: { [key: string]: string |
       candidate_name,
       candidate_email,
       created_at,
-      opening:openings!inner(id, title, department),
+      opening:openings!inner(id, title, department, company_id),
       interviewers:application_interviewers(
         id,
         interviewer:profiles(id, name)
+      ),
+      requests:interview_requests(
+        id,
+        status,
+        interviewer:profiles!interview_requests_interviewer_id_fkey(id, name)
       )
     `, { count: 'exact' })
+
+  if (activeCompanyId) {
+    dbQuery = dbQuery.eq('opening.company_id', activeCompanyId);
+  }
 
   // Apply filters
   if (query) {
@@ -51,15 +68,21 @@ export async function getAssignmentsData(searchParams: { [key: string]: string |
         candidate_name,
         candidate_email,
         created_at,
-        opening:openings!inner(id, title, department),
+        opening:openings!inner(id, title, department, company_id),
         interviewers:application_interviewers!inner(
           id,
           interviewer_id,
           interviewer:profiles(id, name)
+        ),
+        requests:interview_requests(
+          id,
+          status,
+          interviewer:profiles!interview_requests_interviewer_id_fkey(id, name)
         )
       `, { count: 'exact' })
       .eq('interviewers.interviewer_id', interviewer)
 
+    if (activeCompanyId) dbQuery = dbQuery.eq('opening.company_id', activeCompanyId)
     if (query) dbQuery = dbQuery.ilike('candidate_name', `%${query}%`)
     if (department) dbQuery = dbQuery.eq('openings.department', department)
     if (opening) dbQuery = dbQuery.eq('opening_id', opening)
@@ -96,10 +119,16 @@ export async function getAssignmentsData(searchParams: { [key: string]: string |
     .order('name')
 
   // Fetch unique departments and openings for filters
-  const { data: openingsList } = await supabase
+  let openingsQuery = supabase
     .from('openings')
-    .select('id, title, department')
+    .select('id, title, department, company_id')
     .order('title')
+
+  if (activeCompanyId) {
+    openingsQuery = openingsQuery.eq('company_id', activeCompanyId)
+  }
+
+  const { data: openingsList } = await openingsQuery
 
   const departments = Array.from(new Set(openingsList?.map(o => o.department) || [])).sort()
 

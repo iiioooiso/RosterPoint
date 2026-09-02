@@ -5,16 +5,33 @@ import { revalidatePath } from 'next/cache'
 
 export async function addInterviewerToApplication(applicationId: string, interviewerId: string) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
 
-  const { error } = await supabase
+  // Check if they are already assigned
+  const { data: existingAssignment } = await supabase
     .from('application_interviewers')
-    .insert({ application_id: applicationId, interviewer_id: interviewerId })
+    .select('id')
+    .eq('application_id', applicationId)
+    .eq('interviewer_id', interviewerId)
+    .single()
+
+  if (existingAssignment) {
+    return { error: 'Interviewer is already assigned to this application.' }
+  }
+
+  // Create or update request to pending
+  const { error } = await supabase
+    .from('interview_requests')
+    .upsert({ 
+      application_id: applicationId, 
+      interviewer_id: interviewerId,
+      recruiter_id: user.id,
+      status: 'pending' 
+    }, { onConflict: 'application_id, interviewer_id' })
 
   if (error) {
-    if (error.code === '23505') {
-      return { error: 'Interviewer is already assigned to this application.' }
-    }
-    return { error: 'Failed to assign interviewer. Please check permissions and try again.' }
+    return { error: 'Failed to send interview request. Please check permissions and try again.' }
   }
 
   revalidatePath('/recruiter/interview-panel')
@@ -40,6 +57,8 @@ export async function removeInterviewerFromApplication(applicationId: string, in
 
 export async function bulkAddInterviewer(applicationIds: string[], interviewerId: string) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { success: false, results: { successCount: 0, failures: [] } }
   
   const results = {
     successCount: 0,
@@ -47,14 +66,16 @@ export async function bulkAddInterviewer(applicationIds: string[], interviewerId
   }
 
   for (const appId of applicationIds) {
+    // Check existing
+    const { data: existing } = await supabase.from('application_interviewers').select('id').eq('application_id', appId).eq('interviewer_id', interviewerId).single()
+    if (existing) continue;
+
     const { error } = await supabase
-      .from('application_interviewers')
-      .insert({ application_id: appId, interviewer_id: interviewerId })
+      .from('interview_requests')
+      .upsert({ application_id: appId, interviewer_id: interviewerId, recruiter_id: user.id, status: 'pending' }, { onConflict: 'application_id, interviewer_id' })
       
     if (error) {
-      if (error.code !== '23505') { // Ignore unique constraint violations (already assigned)
-        results.failures.push({ applicationId: appId, error: error.message })
-      }
+      results.failures.push({ applicationId: appId, error: error.message })
     } else {
       results.successCount++
     }

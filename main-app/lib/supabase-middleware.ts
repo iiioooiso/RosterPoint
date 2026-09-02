@@ -21,6 +21,11 @@ export async function updateSession(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      global: {
+        fetch: (url, options) => {
+          return fetch(url, { ...options, cache: 'no-store' })
+        }
+      },
       cookies: {
         getAll() {
           return request.cookies.getAll()
@@ -64,7 +69,7 @@ export async function updateSession(request: NextRequest) {
   // 2. Authenticated routing logic
   if (user) {
     // Check if the user has a profile (onboarding completed)
-    const { data: profile } = await supabase.from('profiles').select('id, role').eq('id', user.id).maybeSingle()
+    const { data: profile, error: profileError } = await supabase.from('profiles').select('id, role').eq('id', user.id).maybeSingle()
     const hasProfile = !!profile
 
     if (!hasProfile) {
@@ -72,12 +77,22 @@ export async function updateSession(request: NextRequest) {
       if (!isPublicRoute && pathname !== '/onboarding') {
         const url = request.nextUrl.clone()
         url.pathname = '/onboarding'
+        if (profileError) {
+          url.searchParams.set('profile_error', profileError.message || profileError.code || 'unknown')
+        } else {
+          url.searchParams.set('profile_not_found', 'true')
+        }
         return NextResponse.redirect(url)
       }
       // Authenticated + No Profile + Auth Route -> /onboarding
       if (pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password') {
         const url = request.nextUrl.clone()
         url.pathname = '/onboarding'
+        if (profileError) {
+          url.searchParams.set('profile_error', profileError.message || profileError.code || 'unknown')
+        } else {
+          url.searchParams.set('profile_not_found', 'true')
+        }
         return NextResponse.redirect(url)
       }
       // Authenticated + No Profile + /onboarding -> Allowed

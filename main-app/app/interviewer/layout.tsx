@@ -10,21 +10,24 @@ export default async function InterviewerLayout({ children }: { children: ReactN
   const { data: { user } } = await supabase.auth.getUser();
   
   let role = "Unknown";
+  let name = "";
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role")
+      .select("role, name")
       .eq("id", user.id)
       .single();
     if (profile) {
       role = profile.role;
+      name = profile.name || "";
     }
   }
 
   const userInfo = user ? {
+    name: name,
     email: user.email || "",
     role: role,
-    fallback: user.email ? user.email.substring(0, 2).toUpperCase() : "U",
+    fallback: name ? name.substring(0, 2).toUpperCase() : (user.email ? user.email.substring(0, 2).toUpperCase() : "U"),
   } : null;
 
   return (

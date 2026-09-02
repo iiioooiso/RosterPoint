@@ -116,7 +116,7 @@ export function AssignmentsTable({
           />
         </form>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto pb-1 sm:pb-0">
           <Select
             value={currentFilters.department || ""}
             onValueChange={(v) => handleFilterChange('department', v)}
@@ -283,7 +283,7 @@ export function AssignmentsTable({
                   <TableCell>
                     <div className="flex flex-wrap gap-1.5 items-center">
                       {app.interviewers?.slice(0, 3).map((ai: any) => (
-                        <Badge key={ai.id} variant="secondary" className="pr-1 font-normal bg-muted">
+                        <Badge key={ai.id} variant="secondary" className="pr-1 font-normal bg-muted border-primary/20">
                           {ai.interviewer?.name}
                           <button
                             className="ml-1 rounded-full p-0.5 hover:bg-destructive hover:text-destructive-foreground transition-colors"
@@ -294,9 +294,14 @@ export function AssignmentsTable({
                           </button>
                         </Badge>
                       ))}
-                      {app.interviewers?.length > 3 && (
+                      {app.requests?.filter((r: any) => r.status === 'pending').slice(0, 3 - (app.interviewers?.length || 0)).map((r: any) => (
+                        <Badge key={r.id} variant="outline" className="pr-1 font-normal border-dashed opacity-70">
+                          {r.interviewer?.name} (Pending)
+                        </Badge>
+                      ))}
+                      {((app.interviewers?.length || 0) + (app.requests?.filter((r: any) => r.status === 'pending').length || 0)) > 3 && (
                         <Badge variant="outline" className="font-normal border-dashed">
-                          +{app.interviewers.length - 3}
+                          +{((app.interviewers?.length || 0) + (app.requests?.filter((r: any) => r.status === 'pending').length || 0)) - 3}
                         </Badge>
                       )}
                       <Button

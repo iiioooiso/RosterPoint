@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, LogOut } from "lucide-react";
+import { Users, LogOut, MessageSquare, Mail, Command } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -22,10 +22,20 @@ const navItems = [
     title: "Dashboard",
     url: "/interviewer/dashboard",
     icon: Users,
+  },
+  {
+    title: "Feedback",
+    url: "/interviewer/feedback",
+    icon: MessageSquare,
+  },
+  {
+    title: "Requests",
+    url: "/interviewer/requests",
+    icon: Mail,
   }
 ];
 
-export function InterviewerSidebar({ user }: { user: any }) {
+export function InterviewerSidebar({ user }: { user?: { name: string, email: string, role: string, fallback: string } | null }) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -37,27 +47,30 @@ export function InterviewerSidebar({ user }: { user: any }) {
 
   return (
     <Sidebar className="border-r border-border bg-card">
-      <SidebarHeader className="h-14 flex items-center px-6 border-b border-border">
-        <div className="flex items-center gap-2 font-bold text-lg text-foreground">
-          <div className="h-6 w-6 rounded-md bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground text-xs leading-none">R</span>
+      <SidebarHeader className="flex h-14 items-center justify-center border-b px-4">
+        <Link
+          href="/interviewer/dashboard"
+          className="flex w-full items-center gap-2 font-semibold text-foreground"
+        >
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <Command className="size-4" />
           </div>
-          RosterPoint
-        </div>
+          <span className="tracking-tight text-base font-bold">RosterPoint</span>
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupContent>
+          <SidebarGroupContent className="pt-2">
             <SidebarMenu>
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     render={<Link href={item.url} prefetch={true} />}
-                    isActive={pathname === item.url}
-                    className="text-foreground hover:bg-muted"
+                    isActive={pathname === item.url || pathname.startsWith(`${item.url}/`)}
+                    className="h-10 transition-colors text-foreground hover:bg-muted"
                   >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
+                    <item.icon className="h-5 w-5" />
+                    <span className="text-sm font-medium">{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -70,9 +83,10 @@ export function InterviewerSidebar({ user }: { user: any }) {
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
             <span className="text-xs font-medium text-foreground">{user?.fallback || 'U'}</span>
           </div>
-          <div className="flex flex-col flex-1 overflow-hidden">
-            <span className="text-sm font-medium truncate text-foreground">{user?.email || 'User'}</span>
-            <span className="text-xs text-muted-foreground capitalize">{user?.role || 'Interviewer'}</span>
+          <div className="flex flex-col overflow-hidden leading-tight">
+            <span className="truncate text-sm font-semibold text-foreground">{user?.name || user?.email?.split('@')[0] || 'User'}</span>
+            <span className="truncate text-[10px] text-muted-foreground">{user?.email?.toLowerCase() || ''}</span>
+            <span className="truncate text-xs text-muted-foreground capitalize mt-0.5">{user?.role || 'Interviewer'}</span>
           </div>
         </div>
         <button onClick={handleLogout} className="flex items-center gap-2 px-2 py-2 text-sm text-muted-foreground hover:text-foreground w-full rounded-md hover:bg-muted transition-colors">

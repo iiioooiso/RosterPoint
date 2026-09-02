@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { CompanySelector } from "@/components/company-selector";
 
 const routeConfig: Record<string, { title: string; description?: string }> = {
   "/recruiter/dashboard": { title: "Dashboard", description: "Overview of your hiring pipeline" },
@@ -15,7 +16,12 @@ const routeConfig: Record<string, { title: string; description?: string }> = {
   "/recruiter/teams": { title: "Teams & Routing", description: "Manage interviewer teams and routing rules" },
 };
 
-export function RecruiterHeader() {
+interface Company {
+  id: string;
+  name: string;
+}
+
+export function RecruiterHeader({ companies = [], activeCompanyId }: { companies?: Company[], activeCompanyId?: string }) {
   const pathname = usePathname();
   
   // Find the matching route config, defaulting to nothing if not matched
@@ -39,6 +45,9 @@ export function RecruiterHeader() {
         )}
       </div>
       <div className="flex items-center gap-4">
+        {companies.length > 0 && (
+          <CompanySelector companies={companies} activeCompanyId={activeCompanyId} />
+        )}
         <ThemeToggle />
       </div>
     </header>

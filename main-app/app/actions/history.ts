@@ -1,6 +1,12 @@
 'use server'
 
 import { createClient } from '@/lib/server'
+import { cookies } from "next/headers"
+
+async function getActiveCompanyId() {
+  const cookieStore = await cookies();
+  return cookieStore.get('cx_active_company')?.value;
+}
 
 export type ApplicationHistoryEvent = {
   id: string
@@ -27,7 +33,9 @@ export async function getGlobalHistory(page: number = 1, limit: number = 50) {
   const from = (page - 1) * limit
   const to = from + limit - 1
 
-  const { data, error, count } = await supabase
+  const activeCompanyId = await getActiveCompanyId();
+
+  let query = supabase
     .from('application_history')
     .select(`
       id,
@@ -37,10 +45,16 @@ export async function getGlobalHistory(page: number = 1, limit: number = 50) {
       details,
       created_at,
       actor:profiles(name),
-      application:applications(candidate_name, opening:openings(title))
+      application:applications!inner(candidate_name, opening:openings!inner(title, company_id))
     `, { count: 'exact' })
     .order('created_at', { ascending: false })
-    .range(from, to)
+    .range(from, to);
+
+  if (activeCompanyId) {
+    query = query.eq('application.opening.company_id', activeCompanyId);
+  }
+
+  const { data, error, count } = await query;
 
   if (error) {
     console.error("Error fetching global history:", error)

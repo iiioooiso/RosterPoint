@@ -66,7 +66,7 @@ const navItems = [
   },
 ];
 
-export function RecruiterSidebar({ user }: { user?: { email: string, role: string, fallback: string } | null }) {
+export function RecruiterSidebar({ user }: { user?: { name: string, email: string, role: string, fallback: string } | null }) {
   const pathname = usePathname();
   const { data: alertsData } = useCachedAction("alerts-count", getAlertsCount);
 
@@ -120,9 +120,10 @@ export function RecruiterSidebar({ user }: { user?: { email: string, role: strin
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-medium text-sm">
               {user.fallback}
             </div>
-            <div className="flex flex-col overflow-hidden">
-              <span className="truncate text-sm font-medium text-foreground">{user.email}</span>
-              <span className="truncate text-xs text-muted-foreground capitalize">{user.role}</span>
+            <div className="flex flex-col overflow-hidden leading-tight">
+              <span className="truncate text-sm font-semibold text-foreground">{user.name || user.email.split('@')[0]}</span>
+              <span className="truncate text-[10px] text-muted-foreground">{user.email.toLowerCase()}</span>
+              <span className="truncate text-xs text-muted-foreground capitalize mt-0.5">{user.role}</span>
             </div>
           </div>
         </div>

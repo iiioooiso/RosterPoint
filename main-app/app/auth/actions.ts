@@ -160,7 +160,7 @@ export async function completeOnboardingAction(formData: FormData) {
     p_age: age || null,
     p_sex: sex || null,
     p_university_name: university_name || null,
-    p_company_name: company_name || null,
+    p_company_name: role === 'recruiter' ? (company_name || null) : null,
     p_job_title: job_title || null
   })
 
@@ -168,7 +168,33 @@ export async function completeOnboardingAction(formData: FormData) {
     return { error: error.message || 'Failed to complete onboarding.' }
   }
 
-  revalidatePath('/', 'layout')
-  return { url: `/${role}/dashboard` }
-}
+  if (role === 'recruiter' && company_name) {
+    let slug = company_name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    if (!slug) slug = 'company';
+    
+    let { data: newCompanyId, error: companyError } = await supabase.rpc('create_company', {
+      p_name: company_name,
+      p_slug: slug
+    });
 
+    if (companyError) {
+        slug = `${slug}-${Math.random().toString(36).substring(2, 8)}`;
+        const retry = await supabase.rpc('create_company', {
+          p_name: company_name,
+          p_slug: slug
+        });
+        if (retry.error) {
+            return { error: 'Failed to create company workspace.' }
+        }
+        newCompanyId = retry.data;
+    }
+
+    if (newCompanyId) {
+        const cookieStore = await cookies();
+        cookieStore.set('cx_active_company', newCompanyId, { path: '/' });
+    }
+  }
+
+  revalidatePath('/', 'layout')
+  redirect(`/${role}/dashboard`)
+}

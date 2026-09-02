@@ -5,10 +5,16 @@ import { revalidatePath } from "next/cache";
 import {
   OpeningDetail,
   OpeningRequirement,
-  ApplicationMaterials,
   OpeningStatus,
   Opening,
+  ApplicationMaterials,
 } from "@/lib/types";
+import { cookies } from "next/headers";
+
+async function getActiveCompanyId() {
+  const cookieStore = await cookies();
+  return cookieStore.get('cx_active_company')?.value;
+}
 
 export type CreateOpeningInput = {
   title: string;
@@ -44,11 +50,17 @@ export async function createOpening(input: CreateOpeningInput) {
     throw new Error("Only recruiters can create openings");
   }
 
+  const activeCompanyId = await getActiveCompanyId();
+  if (!activeCompanyId) {
+    throw new Error("No active company selected");
+  }
+
   const { data, error } = await supabase
     .from("openings")
     .insert([
       {
         recruiter_id: userData.user.id,
+        company_id: activeCompanyId,
         title: input.title,
         department: input.department,
         description: input.description,
@@ -131,10 +143,18 @@ export async function getOpenings() {
   
   // Notice we use the middleware client, it should apply RLS correctly.
   // The RLS policy for recruiter allows them to see all.
-  const { data, error } = await supabase
+  const activeCompanyId = await getActiveCompanyId();
+  
+  let query = supabase
     .from("openings")
     .select("*")
     .order("created_at", { ascending: false });
+
+  if (activeCompanyId) {
+    query = query.eq('company_id', activeCompanyId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching openings:", error.message || error);

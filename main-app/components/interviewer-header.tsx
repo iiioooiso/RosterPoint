@@ -7,6 +7,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 const routeConfig: Record<string, { title: string; description?: string }> = {
   "/interviewer/applications": { title: "Applications", description: "Candidates routed to your teams" },
+  "/interviewer/dashboard": { title: "Interviewer Workspace", description: "Manage your interview assignments." },
+  "/interviewer/feedback": { title: "Interview Feedback", description: "Provide and manage your interview feedback." },
+  "/interviewer/requests": { title: "Interview Requests", description: "Manage interview requests from companies." }
 };
 
 export function InterviewerHeader() {
