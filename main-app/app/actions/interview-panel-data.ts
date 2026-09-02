@@ -148,3 +148,43 @@ export async function getInterviewersData() {
 
   return { interviewers: interviewers || [] }
 }
+
+export async function getUpcomingInterviews(limit: number = 5) {
+  const supabase = await createClient()
+
+  // Fetch upcoming interviews from the newly created interviews table
+  const { data, error } = await supabase
+    .from('interviews')
+    .select(`
+      id,
+      scheduled_at,
+      application:applications(
+        id,
+        candidate_name,
+        opening:openings(id, title),
+        interviewers:application_interviewers(
+          interviewer:profiles(id, name)
+        )
+      )
+    `)
+    .gte('scheduled_at', new Date().toISOString())
+    .order('scheduled_at', { ascending: true })
+    .limit(limit)
+
+  if (error) {
+    console.error("Error fetching upcoming interviews:", error)
+    return { data: [], error: 'Failed to load upcoming interviews' }
+  }
+
+  // Flatten relationships properly
+  const formattedData = (data || []).map((item: any) => ({
+    id: item.id as string,
+    scheduled_at: item.scheduled_at as string,
+    candidate_name: item.application?.candidate_name as string,
+    opening_title: item.application?.opening?.title as string,
+    interviewers: item.application?.interviewers?.map((i: any) => i.interviewer?.name).filter(Boolean) as string[],
+    application_id: item.application?.id as string,
+  }))
+
+  return { data: formattedData, error: null }
+}

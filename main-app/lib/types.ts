@@ -57,7 +57,7 @@ export interface Opening {
   application_materials: ApplicationMaterials;
 }
 
-export type ApplicationStage = "applied" | "screening" | "interview" | "offer" | "rejected" | "withdrawn";
+export type ApplicationStage = "applied" | "screening" | "interview" | "offer" | "hired" | "rejected" | "withdrawn";
 
 export interface Application {
   id: string;
@@ -87,4 +87,12 @@ export interface ApplicationHistory {
   event_type: string;
   details: any;
   created_at: string;
+}
+
+export interface Interview {
+  id: string;
+  application_id: string;
+  scheduled_at: string;
+  created_at: string;
+  updated_at: string;
 }

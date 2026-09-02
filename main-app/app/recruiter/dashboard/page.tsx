@@ -1,8 +1,23 @@
-export default function DashboardPage() {
+import { getDashboardMetrics } from "./actions";
+import { getAlerts } from "@/app/actions/alerts";
+import { getUpcomingInterviews } from "@/app/actions/interview-panel-data";
+import { getGlobalHistory } from "@/app/actions/history";
+import { DashboardClient } from "./DashboardClient";
+
+export default async function DashboardPage() {
+  const [metrics, alertsData, interviewsData, historyData] = await Promise.all([
+    getDashboardMetrics(),
+    getAlerts(),
+    getUpcomingInterviews(5),
+    getGlobalHistory(1, 6)
+  ]);
+
   return (
-    <div className="flex flex-col items-center justify-center h-full">
-      <h1 className="text-3xl font-bold tracking-tight">Welcome to the Dashboard</h1>
-      <p className="text-muted-foreground mt-2">Your onboarding is complete. Select an option from the sidebar to continue.</p>
-    </div>
+    <DashboardClient 
+      metrics={metrics} 
+      alerts={alertsData.alerts.slice(0, 5)} 
+      upcomingInterviews={interviewsData.data} 
+      recentHistory={historyData.data} 
+    />
   );
 }
