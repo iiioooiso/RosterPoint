@@ -111,13 +111,11 @@ export function AlertsView({ initialAlerts }: { initialAlerts: Alert[] }) {
                 <Button 
                   variant="default" 
                   size="sm" 
-                  asChild
+                  render={<Link href={`/recruiter/applicants/${alert.id}`} />}
                   className="flex-1 sm:flex-none h-9"
                 >
-                  <Link href={`/recruiter/applicants/${alert.id}`}>
-                    <Eye className="mr-2 h-4 w-4" />
-                    View App
-                  </Link>
+                  <Eye className="mr-2 h-4 w-4" />
+                  View App
                 </Button>
               </div>
             </div>
