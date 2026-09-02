@@ -6,14 +6,13 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const token_hash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
-  const next = searchParams.get('next') ?? '/dashboard'
+  const next = searchParams.get('next') ?? null
 
   // Safety: Prevent open redirects
-  const isInternal = next.startsWith('/') && !next.startsWith('//')
-  const safeNext = isInternal ? next : '/dashboard'
+  const isInternal = next ? (next.startsWith('/') && !next.startsWith('//')) : false
+  const safeNext = isInternal ? next : null
 
   const redirectTo = request.nextUrl.clone()
-  redirectTo.pathname = safeNext
   redirectTo.searchParams.delete('token_hash')
   redirectTo.searchParams.delete('type')
 
@@ -25,11 +24,18 @@ export async function GET(request: NextRequest) {
       token_hash,
     })
     
-    if (!error) {
+    if (!error && user) {
       // Check if user has returnTo in metadata
       const metaReturnTo = user?.user_metadata?.returnTo
       if (metaReturnTo && metaReturnTo.startsWith('/')) {
         redirectTo.pathname = metaReturnTo
+      } else if (safeNext) {
+        redirectTo.pathname = safeNext
+      } else {
+        // Resolve dashboard by role
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+        const role = profile?.role || 'student'
+        redirectTo.pathname = `/${role}/dashboard`
       }
       
       redirectTo.searchParams.delete('next')

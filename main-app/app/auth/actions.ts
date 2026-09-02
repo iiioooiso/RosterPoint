@@ -5,6 +5,15 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/server'
 import { headers, cookies } from 'next/headers'
 
+async function getRoleDashboard(): Promise<string> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return '/login'
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const role = profile?.role || 'student'
+  return `/${role}/dashboard`
+}
+
 export async function signInAction(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
@@ -26,7 +35,8 @@ export async function signInAction(formData: FormData) {
     redirect(nextUrl)
   }
   
-  redirect('/dashboard')
+  const dashboard = await getRoleDashboard()
+  redirect(dashboard)
 }
 
 export async function signUpAction(formData: FormData) {
@@ -101,7 +111,8 @@ export async function updatePasswordAction(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard') // This will be intercepted by middleware and redirected to correct dashboard
+  const dashboard = await getRoleDashboard()
+  redirect(dashboard)
 }
 
 export async function signInWithGoogleAction(nextUrl?: string | null) {

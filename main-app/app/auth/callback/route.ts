@@ -8,11 +8,11 @@ export async function GET(request: Request) {
   
   const cookieStore = await cookies()
   const cookieNext = cookieStore.get('oauth_return_to')?.value
-  const next = searchParams.get('next') ?? cookieNext ?? '/dashboard'
+  const next = searchParams.get('next') ?? cookieNext ?? null
 
   // Safety: Prevent open redirects
-  const isInternal = next.startsWith('/') && !next.startsWith('//')
-  const safeNext = isInternal ? next : '/dashboard'
+  const isInternal = next ? (next.startsWith('/') && !next.startsWith('//')) : false
+  const safeNext = isInternal ? next : null
 
   if (code) {
     const supabase = await createClient()
@@ -25,6 +25,13 @@ export async function GET(request: Request) {
       const metaReturnTo = data.user?.user_metadata?.returnTo
       if (metaReturnTo && metaReturnTo.startsWith('/')) {
         finalNext = metaReturnTo
+      }
+
+      // If no explicit next URL, resolve dashboard by role
+      if (!finalNext) {
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single()
+        const role = profile?.role || 'student'
+        finalNext = `/${role}/dashboard`
       }
 
       const response = NextResponse.redirect(`${origin}${finalNext}`)

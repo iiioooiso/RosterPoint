@@ -37,6 +37,9 @@ export default async function CareerDetailPage({ params }: { params: Promise<{ i
         <div className="space-y-3">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">{opening.title}</h1>
           <div className="flex flex-wrap gap-2.5">
+            {opening.company_name && (
+              <Badge variant="secondary" className="text-xs font-medium px-2.5 py-0.5 bg-primary/10 text-primary hover:bg-primary/15 transition-colors">{opening.company_name}</Badge>
+            )}
             <Badge variant="secondary" className="text-xs font-medium px-2.5 py-0.5 bg-muted/60 text-muted-foreground hover:bg-muted/80 transition-colors">{opening.department}</Badge>
             {opening.type && (
               <Badge variant="outline" className="text-xs font-medium px-2.5 py-0.5 text-muted-foreground">{opening.type}</Badge>
@@ -103,7 +106,7 @@ export default async function CareerDetailPage({ params }: { params: Promise<{ i
               </CardContent>
             </Card>
           ) : (
-            <ApplicationForm openingId={id} />
+            <ApplicationForm opening={opening} />
           )}
         </div>
       </div>

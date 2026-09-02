@@ -173,7 +173,7 @@ export async function getPublicOpeningById(id: string) {
   
   const { data, error } = await supabase
     .from("openings")
-    .select("*")
+    .select("*, company:companies(name)")
     .eq("id", id)
     // The RLS policy ensures only active, unarchived openings can be retrieved
     .single();
@@ -183,5 +183,7 @@ export async function getPublicOpeningById(id: string) {
     return null;
   }
 
-  return data as Opening;
+  // Flatten company name
+  const companyName = Array.isArray(data.company) ? data.company[0]?.name : data.company?.name;
+  return { ...data, company_name: companyName || null } as Opening & { company_name: string | null };
 }

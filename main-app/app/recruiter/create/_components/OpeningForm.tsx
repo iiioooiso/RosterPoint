@@ -152,15 +152,44 @@ export function OpeningForm({ opening, onCancel, onSuccess }: OpeningFormProps) 
 
     setLoading(true);
     try {
+      // Capture any un-added items
+      const finalRequirements = [...requirements];
+      if (newRequirement.trim()) {
+        finalRequirements.push({ id: crypto.randomUUID(), text: newRequirement.trim(), required: true });
+        setNewRequirement("");
+      }
+      
+      const finalSkills = [...skills];
+      if (newSkill.trim()) {
+        const normalized = newSkill.trim().toLowerCase();
+        if (!finalSkills.includes(normalized)) {
+          finalSkills.push(normalized);
+        }
+        setNewSkill("");
+      }
+
+      const finalMaterials = { ...materials };
+      let finalCustomQuestions = [...customQuestions];
+      if (newQTitle.trim()) {
+        finalCustomQuestions.push({
+          id: crypto.randomUUID(),
+          title: newQTitle.trim(),
+          type: newQType,
+          required: newQRequired
+        });
+        finalMaterials.custom_questions = finalCustomQuestions;
+        setNewQTitle("");
+      }
+
       const payload = {
         title,
         department,
         description,
         type: type || null,
         details,
-        requirements,
-        skills,
-        application_materials: materials,
+        requirements: finalRequirements,
+        skills: finalSkills,
+        application_materials: finalMaterials,
       };
 
       if (opening) {
@@ -454,12 +483,13 @@ export function OpeningForm({ opening, onCancel, onSuccess }: OpeningFormProps) 
                     value={newQTitle}
                     onChange={(e) => setNewQTitle(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddQuestion(); } }}
+                    className="h-9"
                   />
                 </div>
                 <div className="space-y-2 w-[160px]">
                   <Label>Response Type</Label>
                   <Select value={newQType} onValueChange={(val: any) => setNewQType(val)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -469,7 +499,7 @@ export function OpeningForm({ opening, onCancel, onSuccess }: OpeningFormProps) 
                     </SelectContent>
                   </Select>
                 </div>
-                <Button type="button" onClick={handleAddQuestion} variant="secondary" className="gap-2">
+                <Button type="button" onClick={handleAddQuestion} variant="secondary" className="gap-2 h-9">
                   <Plus className="h-4 w-4" /> Add Field
                 </Button>
               </div>

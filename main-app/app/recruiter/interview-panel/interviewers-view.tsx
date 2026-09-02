@@ -29,9 +29,12 @@ export function InterviewersView() {
       <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed rounded-lg bg-muted/10">
         <Users className="w-10 h-10 mb-4 text-muted-foreground" />
         <h3 className="text-lg font-medium">No interviewers found</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          You don't have any users with the interviewer role yet.
+        <p className="mt-1 text-sm text-muted-foreground mb-6">
+          You don't have any interviewers in your workspace yet.
         </p>
+        <Button render={<a href="/recruiter/teams?tab=invitations" />}>
+          Invite Interviewer
+        </Button>
       </div>
     )
   }

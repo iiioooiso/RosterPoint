@@ -150,9 +150,48 @@ export async function getAssignmentsData(searchParams: { [key: string]: string |
 
 export async function getInterviewersData() {
   const supabase = await createClient()
+  const activeCompanyId = await getActiveCompanyId();
+
+  let validInterviewerIds: string[] | null = null;
+
+  if (activeCompanyId) {
+    // 1. Get all recruiters in the active company
+    const { data: companyRecruiters } = await supabase
+      .from('recruiter_company_memberships')
+      .select('recruiter_id')
+      .eq('company_id', activeCompanyId);
+    
+    const recruiterIds = companyRecruiters?.map(r => r.recruiter_id) || [];
+
+    // 2. Get all departments created by these recruiters
+    let departmentIds: string[] = [];
+    if (recruiterIds.length > 0) {
+      const { data: companyDepartments } = await supabase
+        .from('departments')
+        .select('id')
+        .in('recruiter_id', recruiterIds);
+      departmentIds = companyDepartments?.map(d => d.id) || [];
+    }
+
+    // 3. Get all interviewers in these departments
+    if (departmentIds.length > 0) {
+      const { data: departmentMembers } = await supabase
+        .from('department_members')
+        .select('user_id')
+        .in('department_id', departmentIds);
+      validInterviewerIds = Array.from(new Set(departmentMembers?.map(m => m.user_id) || []));
+    } else {
+      validInterviewerIds = [];
+    }
+  }
+
+  // If we are filtering by company and there are no valid interviewers, return empty early
+  if (activeCompanyId && validInterviewerIds && validInterviewerIds.length === 0) {
+    return { interviewers: [] }
+  }
 
   // Fetch interviewers and their assigned applications
-  const { data: interviewers, error } = await supabase
+  let dbQuery = supabase
     .from('profiles')
     .select(`
       id,
@@ -163,19 +202,37 @@ export async function getInterviewersData() {
           id,
           candidate_name,
           stage,
-          opening:openings(id, title, department)
+          opening:openings(id, title, department, company_id)
         )
       )
     `)
     .eq('role', 'interviewer')
     .order('name')
 
+  if (validInterviewerIds && validInterviewerIds.length > 0) {
+    dbQuery = dbQuery.in('id', validInterviewerIds);
+  }
+
+  const { data: interviewers, error } = await dbQuery
+
   if (error) {
     console.error("Error fetching interviewers view:", error)
     throw new Error('Failed to load interviewers')
   }
 
-  return { interviewers: interviewers || [] }
+  // Filter application_interviewers to only those in the active company, just in case
+  const filteredInterviewers = (interviewers || []).map((interviewer: any) => {
+    if (!activeCompanyId) return interviewer;
+    
+    return {
+      ...interviewer,
+      application_interviewers: (interviewer.application_interviewers || []).filter((assignment: any) => 
+        assignment.application?.opening?.company_id === activeCompanyId
+      )
+    };
+  });
+
+  return { interviewers: filteredInterviewers }
 }
 
 export async function getUpcomingInterviews(limit: number = 5) {

@@ -56,6 +56,21 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Catch bare /dashboard — resolve role and redirect
+  if (pathname === '/dashboard') {
+    if (user) {
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+      const role = profile?.role || 'student'
+      const url = request.nextUrl.clone()
+      url.pathname = `/${role}/dashboard`
+      return NextResponse.redirect(url)
+    } else {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+  }
+
   // 1. Unauthenticated + Protected Route -> /login
   if (!user && !isPublicRoute && pathname !== '/oauth/consent') {
     const url = request.nextUrl.clone()

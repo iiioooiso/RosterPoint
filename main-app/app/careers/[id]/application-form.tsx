@@ -5,10 +5,11 @@ import { submitApplication } from '@/app/actions/applications'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
 import { useRouter } from 'next/navigation'
+import { Opening, ApplicationMaterials } from '@/lib/types'
 
-export function ApplicationForm({ openingId }: { openingId: string }) {
+export function ApplicationForm({ opening }: { opening: Opening }) {
   const router = useRouter()
   const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -20,13 +21,13 @@ export function ApplicationForm({ openingId }: { openingId: string }) {
     setIsPending(true)
     setError(null)
     
-    const result = await submitApplication(openingId, formData)
+    const result = await submitApplication(opening.id, formData)
     
     if (result?.error) {
       setError(result.error)
       // If user is not logged in, redirect to login
       if (result.error === 'You must be logged in to apply.') {
-        router.push(`/login?next=/careers/${openingId}`)
+        router.push(`/login?next=/careers/${opening.id}`)
       }
     } else if (result?.success) {
       setSuccess(true)
@@ -36,53 +37,121 @@ export function ApplicationForm({ openingId }: { openingId: string }) {
     setIsPending(false)
   }
 
+  const materials = opening.application_materials as ApplicationMaterials || {
+    resume: { enabled: true, required: true },
+    portfolio: { enabled: false, required: false },
+    cover_letter: { enabled: false, required: false }
+  };
+
   if (success) {
     return (
-      <Card className="bg-green-50/50 border-green-200">
-        <CardContent className="pt-6 text-center space-y-2">
-          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto text-green-600">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          </div>
-          <h3 className="text-lg font-medium text-green-800">Application Submitted</h3>
-          <p className="text-green-700 text-sm">We've received your application and will be in touch soon.</p>
-        </CardContent>
-      </Card>
+      <div className="bg-green-50/50 border border-green-200 rounded-lg p-8 mt-4 text-center space-y-3">
+        <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto text-green-600">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <h3 className="text-lg font-medium text-green-800">Application Submitted</h3>
+        <p className="text-green-700 text-sm max-w-sm mx-auto">We've received your application and will be in touch soon regarding next steps.</p>
+      </div>
     )
   }
 
   return (
-    <Card className="max-w-xl overflow-hidden border-border/60 shadow-sm">
-      <CardHeader className="bg-muted/30 border-b border-border/40 pb-4">
-        <CardTitle className="text-lg font-medium">Apply for this role</CardTitle>
-        <CardDescription>Upload your resume to submit your application.</CardDescription>
-      </CardHeader>
-      <form action={handleSubmit} ref={formRef}>
-        <CardContent className="space-y-6 pt-6">
-          {error && (
-            <div className="text-sm font-medium text-destructive bg-destructive/10 p-3 rounded-md">
-              {error}
-            </div>
-          )}
-          
-          <div className="space-y-3">
-            <Label htmlFor="resume" className="text-sm font-medium text-foreground">Resume (PDF)</Label>
+    <div className="max-w-2xl mt-8">
+      <div className="mb-8">
+        <h2 className="text-xl font-medium tracking-tight text-foreground">Apply for this role</h2>
+        <p className="text-muted-foreground mt-1 text-sm">Please provide the requested materials to submit your application.</p>
+      </div>
+
+      <form action={handleSubmit} ref={formRef} className="space-y-6">
+        {error && (
+          <div className="text-sm font-medium text-destructive bg-destructive/10 p-3 rounded-md">
+            {error}
+          </div>
+        )}
+        
+        {materials.resume?.enabled && (
+          <div className="space-y-2">
+            <Label htmlFor="resume" className="text-sm font-medium text-foreground">
+              Resume (PDF) {materials.resume.required ? <span className="text-destructive">*</span> : <span className="text-muted-foreground font-normal">(Optional)</span>}
+            </Label>
             <Input 
               id="resume" 
               name="resume" 
               type="file" 
               accept="application/pdf" 
-              required 
+              required={materials.resume.required} 
               className="cursor-pointer file:cursor-pointer file:font-medium file:text-foreground text-muted-foreground"
             />
           </div>
-          
-          <div className="pt-2 flex justify-end">
-            <Button type="submit" disabled={isPending} className="px-6 shadow-sm">
-              {isPending ? "Submitting..." : "Submit Application"}
-            </Button>
+        )}
+
+        {materials.portfolio?.enabled && (
+          <div className="space-y-2">
+            <Label htmlFor="portfolio" className="text-sm font-medium text-foreground">
+              Portfolio Link {materials.portfolio.required ? <span className="text-destructive">*</span> : <span className="text-muted-foreground font-normal">(Optional)</span>}
+            </Label>
+            <Input 
+              id="portfolio" 
+              name="portfolio" 
+              type="url" 
+              placeholder="https://..."
+              required={materials.portfolio.required} 
+            />
           </div>
-        </CardContent>
+        )}
+
+        {materials.cover_letter?.enabled && (
+          <div className="space-y-2">
+            <Label htmlFor="cover_letter" className="text-sm font-medium text-foreground">
+              Cover Letter {materials.cover_letter.required ? <span className="text-destructive">*</span> : <span className="text-muted-foreground font-normal">(Optional)</span>}
+            </Label>
+            <Textarea 
+              id="cover_letter" 
+              name="cover_letter" 
+              rows={4}
+              placeholder="Tell us why you are a great fit for this role..."
+              required={materials.cover_letter.required} 
+            />
+          </div>
+        )}
+
+        {materials.custom_questions && materials.custom_questions.map((q) => (
+          <div key={q.id} className="space-y-2">
+            <Label htmlFor={`custom_${q.id}`} className="text-sm font-medium text-foreground">
+              {q.title} {q.required ? <span className="text-destructive">*</span> : <span className="text-muted-foreground font-normal">(Optional)</span>}
+            </Label>
+            {q.type === 'textarea' ? (
+              <Textarea 
+                id={`custom_${q.id}`} 
+                name={`custom_${q.id}`} 
+                required={q.required}
+                rows={3}
+              />
+            ) : q.type === 'file' ? (
+              <Input 
+                id={`custom_${q.id}`} 
+                name={`custom_${q.id}`} 
+                type="file" 
+                required={q.required}
+                className="cursor-pointer file:cursor-pointer file:font-medium file:text-foreground text-muted-foreground"
+              />
+            ) : (
+              <Input 
+                id={`custom_${q.id}`} 
+                name={`custom_${q.id}`} 
+                type="text" 
+                required={q.required} 
+              />
+            )}
+          </div>
+        ))}
+        
+        <div className="pt-4 flex justify-end border-t mt-8">
+          <Button type="submit" disabled={isPending} className="px-8 shadow-sm">
+            {isPending ? "Submitting..." : "Submit Application"}
+          </Button>
+        </div>
       </form>
-    </Card>
+    </div>
   )
 }

@@ -3,8 +3,16 @@ import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { ApplicationsSheet } from "./applications-sheet"
+import { CompanySelector } from "./company-selector"
 
-export default async function StudentDashboardPage() {
+export default async function StudentDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const params = await searchParams
+  const selectedCompanyId = typeof params.company === "string" ? params.company : undefined
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -19,13 +27,42 @@ export default async function StudentDashboardPage() {
     .eq('student_id', user.id)
     .order('created_at', { ascending: false })
 
-  // Fetch active openings
-  const { data: openings } = await supabase
+  // Fetch active openings to derive companies
+  const { data: allActiveOpenings } = await supabase
     .from('openings')
-    .select('id, title, department, created_at')
+    .select('company_id, company:companies(id, name)')
+    .eq('status', 'open')
+    .is('archived_at', null)
+
+  const uniqueCompaniesMap = new Map()
+  allActiveOpenings?.forEach((opening: any) => {
+    if (opening.company && opening.company_id) {
+      if (!uniqueCompaniesMap.has(opening.company_id)) {
+        uniqueCompaniesMap.set(opening.company_id, {
+          id: opening.company_id,
+          name: Array.isArray(opening.company) ? opening.company[0]?.name : opening.company?.name
+        })
+      }
+    }
+  })
+  
+  const companies = Array.from(uniqueCompaniesMap.values()).sort((a: any, b: any) => 
+    (a.name || "").localeCompare(b.name || "")
+  )
+
+  // Fetch active openings for display (filtered by company if selected)
+  let openingsQuery = supabase
+    .from('openings')
+    .select('id, title, department, created_at, company_id, company:companies(name)')
     .eq('status', 'open')
     .is('archived_at', null)
     .order('created_at', { ascending: false })
+
+  if (selectedCompanyId && selectedCompanyId !== 'all') {
+    openingsQuery = openingsQuery.eq('company_id', selectedCompanyId)
+  }
+
+  const { data: openings } = await openingsQuery
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pt-0 pb-8">
@@ -37,8 +74,10 @@ export default async function StudentDashboardPage() {
             <h3 className="text-lg font-medium tracking-tight text-foreground">Available Positions</h3>
             <p className="text-sm text-muted-foreground mt-1">Explore and apply for open roles.</p>
           </div>
-          {/* Applications Slide-over Trigger */}
-          <ApplicationsSheet applications={applications || []} />
+          <div className="flex items-center gap-4">
+            <CompanySelector companies={companies} selectedCompanyId={selectedCompanyId} />
+            <ApplicationsSheet applications={applications || []} />
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -56,7 +95,9 @@ export default async function StudentDashboardPage() {
                   <CardHeader className="pb-3">
                     <div className="space-y-1">
                       <h3 className="text-base font-medium group-hover:text-primary transition-colors">{opening.title}</h3>
-                      <CardDescription>{opening.department}</CardDescription>
+                      <CardDescription>
+                        {opening.department} • {(Array.isArray(opening.company) ? opening.company[0]?.name : opening.company?.name) || 'Unknown Company'}
+                      </CardDescription>
                     </div>
                   </CardHeader>
                   <CardContent className="flex-1">
