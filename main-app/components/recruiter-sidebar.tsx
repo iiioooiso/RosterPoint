@@ -24,6 +24,8 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { useCachedAction } from "@/hooks/use-cached-action";
+import { getAlertsCount } from "@/app/actions/alerts";
 
 const navItems = [
   {
@@ -55,7 +57,7 @@ const navItems = [
     title: "Alerts",
     url: "/recruiter/alerts",
     icon: Bell,
-    badge: "7",
+    badge: "alerts", // We'll use this as a key to replace dynamically
   },
   {
     title: "History",
@@ -66,6 +68,7 @@ const navItems = [
 
 export function RecruiterSidebar({ user }: { user?: { email: string, role: string, fallback: string } | null }) {
   const pathname = usePathname();
+  const { data: alertsData } = useCachedAction("alerts-count", getAlertsCount);
 
   return (
     <Sidebar>
@@ -99,9 +102,9 @@ export function RecruiterSidebar({ user }: { user?: { email: string, role: strin
                       <item.icon className="h-5 w-5" />
                       <span className="text-sm font-medium">{item.title}</span>
                     </SidebarMenuButton>
-                    {item.badge && (
+                    {item.badge === "alerts" && alertsData && alertsData.count > 0 && (
                       <SidebarMenuBadge className="bg-primary text-primary-foreground h-5 min-w-5 rounded-full px-1.5 text-[10px] font-semibold">
-                        {item.badge}
+                        {alertsData.count}
                       </SidebarMenuBadge>
                     )}
                   </SidebarMenuItem>

@@ -866,3 +866,213 @@ The other sections should be navigable visually, but their actual page functiona
 After completing this shell, **stop**.
 
 We will next design each recruiter section one at a time, starting with the actual **Dashboard** page and its required hiring metrics.
+
+
+--------------------------------------------------------
+Alert panel design 
+# Implement Recruiter Alerts Module
+
+Implement the **Recruiter → Alerts** tab according to the assignment requirements.
+
+### First: Read the specification
+
+Read `README.md` **completely** before making any changes.
+
+Then inspect the existing project architecture, especially:
+
+* applications
+* openings
+* pipeline/stages
+* application history
+* recruiter authentication/RBAC
+* existing RLS policies
+* recruiter sidebar/navigation
+* existing UI components and design system
+
+Do not create duplicate tables, logic, or components if an existing structure can be reused.
+
+---
+
+## Required Alerts behavior
+
+The Alerts page is specifically for **stalled applications**.
+
+An application becomes an alert when it has remained in the **same pipeline stage for more than 10 days**.
+
+The recruiter should be able to see:
+
+* Candidate
+* Opening
+* Current stage
+* How long it has been stalled
+* Last stage/update date
+* View Application
+* Dismiss Alert
+
+Example:
+
+```text
+3 candidates need attention
+
+Candidate       Opening       Stage          Stalled
+Aman Sharma     SWE Intern    Screening      14 days
+Sneha Patel     Backend       Interview      12 days
+Rahul Mehta     Sales         Applied        11 days
+```
+
+---
+
+## Dismissal behavior
+
+Implement the exact behavior required by the README:
+
+1. Application stays in the same stage for >10 days → alert appears.
+2. Recruiter dismisses the alert → that current stalled alert is dismissed.
+3. Application remains stalled → do not immediately recreate the same alert.
+4. Application advances to a new stage → previous dismissal is no longer relevant.
+5. If the application later remains in the new stage for >10 days → a **new alert must appear**.
+
+The dismissal must therefore be associated with the **specific stalled stage/state**, not permanently with the application.
+
+---
+
+## Sidebar badge
+
+The recruiter sidebar's **Alerts** item must show the number of currently active stalled alerts.
+
+Example:
+
+```text
+Alerts  3
+```
+
+The badge should update when:
+
+* an application crosses the 10-day threshold
+* an alert is dismissed
+* an application advances/reverts/reinstates as applicable
+* a new stage subsequently becomes stalled
+
+Do not hard-code the count.
+
+---
+
+## Database / Supabase
+
+If database changes are required, create a **new migration SQL file inside:**
+
+```text
+supabase/migrations/
+```
+
+Do NOT put SQL anywhere else.
+
+Before creating the migration:
+
+1. Inspect all existing migrations.
+2. Reuse the existing application/history/stage structures.
+3. Do not create duplicate application or history tables.
+4. Do not destroy existing data.
+5. Make the migration fully reproducible.
+
+Use the simplest appropriate structure for tracking alert dismissal.
+
+The design must allow the system to distinguish:
+
+```text
+Application A + Screening stage + current stall period
+```
+
+from:
+
+```text
+Application A + Interview stage + later stall period
+```
+
+so a dismissed alert can correctly return after a future stage becomes stalled.
+
+---
+
+## Backend / security
+
+The stalled calculation and alert retrieval should be performed server-side.
+
+Do not rely on the client to determine whether an application has been stalled for 10 days.
+
+Recruiters should be able to:
+
+* view stalled alerts
+* dismiss their alerts
+* open the associated application
+
+Respect the existing RBAC and RLS architecture.
+
+Do not weaken existing security policies just to make Alerts work.
+
+---
+
+## UI / UX
+
+Create a clean recruiter Alerts page consistent with the existing dashboard.
+
+Include:
+
+* Active stalled alert count
+* Alert list/table
+* Clear empty state when there are no stalled applications
+* Candidate/opening/stage information
+* Stall duration
+* View Application action
+* Dismiss action
+* Loading state
+* Error state
+
+Do not turn Alerts into a generic notification center.
+
+Do not add unrelated features such as email alerts, interview scheduling, calendar integrations, or AI recommendations.
+
+---
+
+## Performance
+
+Avoid repeatedly fetching/recalculating everything unnecessarily.
+
+Use the existing data-fetching/caching patterns in the project.
+
+The sidebar badge should use an efficient count/query rather than loading the entire Alerts table just to calculate the number.
+
+---
+
+## Verification
+
+After implementation, verify:
+
+1. Application under 10 days → no alert.
+2. Application over 10 days in the same stage → alert appears.
+3. Recruiter can dismiss it.
+4. Dismissed alert does not immediately return.
+5. Application advances to another stage.
+6. New stage remains >10 days → new alert appears.
+7. Sidebar badge reflects active alerts.
+8. Empty state works.
+9. Recruiter can open the application from the alert.
+10. RLS/RBAC remains correct.
+11. Existing application/pipeline functionality is not broken.
+
+### Final report
+
+After implementation, report:
+
+* Root architecture used
+* New table(s), if any
+* Exact migration filename
+* Complete SQL migration
+* RLS policies
+* How the >10-day calculation works
+* How dismissal is associated with a specific stalled stage
+* How alerts reappear after a later stage stalls
+* How the sidebar badge is calculated
+* Files/components changed
+* Verification performed
+
+Most importantly: **read `README.md` completely and treat it as the source of truth for the assignment.**

@@ -1,42 +1,40 @@
 'use client'
 
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
 import { Users, LayoutList } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export function PanelTabs() {
-  const searchParams = useSearchParams()
-  const tab = searchParams.get('tab') || 'assignments'
+interface PanelTabsProps {
+  activeTab: string
+  onTabChange: (tab: string) => void
+}
 
+export function PanelTabs({ activeTab, onTabChange }: PanelTabsProps) {
   return (
     <div className="flex items-center gap-2">
-      <Link 
-        href="?tab=assignments" 
-        scroll={false} 
+      <button 
+        onClick={() => onTabChange('assignments')}
         className={cn(
-          "inline-flex items-center gap-2 justify-center rounded-md px-3 py-1.5 text-sm font-medium transition-all",
-          tab === 'assignments' 
+          "inline-flex items-center gap-2 justify-center rounded-md px-3 py-1.5 text-sm font-medium transition-all cursor-pointer",
+          activeTab === 'assignments' 
             ? "bg-background text-foreground shadow-sm" 
-            : "text-muted-foreground hover:text-foreground"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
         )}
       >
         <LayoutList className="w-4 h-4" />
         Panel Assignments
-      </Link>
-      <Link 
-        href="?tab=interviewers" 
-        scroll={false} 
+      </button>
+      <button 
+        onClick={() => onTabChange('interviewers')}
         className={cn(
-          "inline-flex items-center gap-2 justify-center rounded-md px-3 py-1.5 text-sm font-medium transition-all",
-          tab === 'interviewers' 
+          "inline-flex items-center gap-2 justify-center rounded-md px-3 py-1.5 text-sm font-medium transition-all cursor-pointer",
+          activeTab === 'interviewers' 
             ? "bg-background text-foreground shadow-sm" 
-            : "text-muted-foreground hover:text-foreground"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
         )}
       >
         <Users className="w-4 h-4" />
         Interviewers
-      </Link>
+      </button>
     </div>
   )
 }
