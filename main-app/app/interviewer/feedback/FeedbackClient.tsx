@@ -6,18 +6,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getAssignedApplications, getSubmittedFeedback } from "@/app/actions/interviewer-data";
+import { getAssignedApplications, getInterviewHistory } from "@/app/actions/interviewer-data";
 import { FileText, CheckCircle, Loader2 } from "lucide-react";
 import { useCachedAction } from "@/hooks/use-cached-action";
 
-export function FeedbackClient() {
-  const { data: appData, isLoading: appLoading } = useCachedAction("assigned-applications", getAssignedApplications);
-  const { data: feedData, isLoading: feedLoading } = useCachedAction("submitted-feedback", getSubmittedFeedback);
+export function FeedbackClient({ activeCompanyId }: { activeCompanyId: string | null | undefined }) {
+  const { data: appData, isLoading: appLoading } = useCachedAction(`assigned-applications-${activeCompanyId}`, () => getAssignedApplications(activeCompanyId || undefined));
+  const { data: feedData, isLoading: feedLoading } = useCachedAction(`interview-history-${activeCompanyId}`, () => getInterviewHistory(activeCompanyId || undefined));
 
   const applications = appData?.applications || [];
-  const feedback = feedData?.feedback || [];
+  const feedback = feedData?.history || [];
 
-  const submittedFeedbackAppIds = new Set(feedback.map(f => f.application_id));
+  const submittedFeedbackAppIds = new Set(feedback.map(f => (f as any).application_id || (f as any).application?.id || f.id));
   
   const pendingFeedbackApps = applications.filter(app => !submittedFeedbackAppIds.has(app.id));
   const submittedFeedbackApps = applications.filter(app => submittedFeedbackAppIds.has(app.id));
@@ -95,7 +95,7 @@ export function FeedbackClient() {
           ) : (
             <div className="space-y-4">
               {submittedFeedbackApps.map(app => {
-                const appFeedback = feedback.find(f => f.application_id === app.id);
+                const appFeedback = feedback.find(f => (f as any).application_id === app.id || (f as any).application?.id === app.id);
                 return (
                   <div key={app.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border bg-card">
                     <div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, LogOut, MessageSquare, Mail, Command } from "lucide-react";
+import { Users, LogOut, MessageSquare, History, Command } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -29,9 +29,9 @@ const navItems = [
     icon: MessageSquare,
   },
   {
-    title: "Requests",
-    url: "/interviewer/requests",
-    icon: Mail,
+    title: "History",
+    url: "/interviewer/history",
+    icon: History,
   }
 ];
 

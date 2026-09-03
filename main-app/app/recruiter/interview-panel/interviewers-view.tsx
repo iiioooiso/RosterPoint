@@ -49,14 +49,16 @@ export function InterviewersView() {
           <Card key={interviewer.id} className="flex flex-col">
             <CardHeader className="pb-3">
               <CardTitle className="flex justify-between items-start">
-                <span className="truncate">{interviewer.name || 'Unnamed Interviewer'}</span>
+                <div className="flex flex-col gap-1 truncate">
+                  <span className="truncate">{interviewer.name || 'Unnamed Interviewer'}</span>
+                  <Badge variant="outline" className="w-fit text-xs font-normal text-muted-foreground">
+                    {interviewer.scopeLabel || 'Company-Wide'}
+                  </Badge>
+                </div>
                 <Badge variant={activeCount > 0 ? 'default' : 'secondary'}>
                   {activeCount} active
                 </Badge>
               </CardTitle>
-              <CardDescription>
-                Workload Overview
-              </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col">
               {activeCount === 0 ? (

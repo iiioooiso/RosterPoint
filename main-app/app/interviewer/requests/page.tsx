@@ -1,5 +1,5 @@
-import { RequestsClient } from "./RequestsClient";
+import { redirect } from "next/navigation";
 
-export default function InterviewerRequests() {
-  return <RequestsClient />;
+export default function RequestsPage() {
+  redirect("/interviewer/history");
 }

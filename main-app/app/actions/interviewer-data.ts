@@ -14,31 +14,71 @@ export interface InterviewerApplication extends Application {
   };
 }
 
-export async function getAssignedApplications() {
+export async function getAssignedApplications(companyId?: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: "Not authenticated" };
+    return { error: "Not authenticated", applications: [] };
   }
 
-  // Fetch applications where the user is an interviewer
-  // Thanks to RLS, 'applications' should only return rows they are assigned to, 
-  // but we specifically join with job_openings for context.
-  const { data, error } = await supabase
-    .from("applications")
+  // 1. Resolve active company
+  let targetCompanyId = companyId;
+  if (!targetCompanyId) {
+    const { getActiveCompanyId } = await import("@/app/actions/company");
+    targetCompanyId = (await getActiveCompanyId()) || undefined;
+  }
+
+  if (!targetCompanyId) {
+    return { applications: [] };
+  }
+
+  // 2. Fetch the interviewer's active memberships in this company
+  const { data: memberships } = await supabase
+    .from("interviewer_company_memberships")
+    .select("department_id, department:departments(name)")
+    .eq("interviewer_id", user.id)
+    .eq("company_id", targetCompanyId)
+    .eq("status", "active");
+
+  if (!memberships || memberships.length === 0) {
+    // Not a member of this company -> sees 0 candidates
+    return { applications: [] };
+  }
+
+  const isCompanyWide = memberships.some((m: any) => !m.department_id);
+  const allowedDepts = new Set(
+    memberships.map((m: any) => (m.department?.name || "").toLowerCase().trim()).filter(Boolean)
+  );
+
+  // 3. Query applications explicitly assigned in application_interviewers
+  const { data: assignments, error: assignError } = await supabase
+    .from("application_interviewers")
     .select(`
-      *,
-      opening:openings(id, title, department, company:companies(name))
+      application:applications!inner(
+        *,
+        opening:openings!inner(id, title, department, company_id, company:companies(name))
+      )
     `)
-    .order('created_at', { ascending: false });
+    .eq("interviewer_id", user.id);
 
-  if (error) {
-    console.error("Error fetching assigned applications:", error);
-    return { error: error.message };
+  if (assignError) {
+    console.error("Error fetching assigned applications:", assignError);
+    return { error: assignError.message, applications: [] };
   }
 
-  return { applications: data as unknown as InterviewerApplication[] };
+  // 4. Filter by active company and department eligibility
+  const applications = (assignments || [])
+    .map((a: any) => a.application)
+    .filter((app: any) => {
+      if (!app || !app.opening) return false;
+      if (app.opening.company_id !== targetCompanyId) return false;
+      if (isCompanyWide) return true;
+      const appDept = (app.opening.department || "").toLowerCase().trim();
+      return allowedDepts.has(appDept);
+    });
+
+  return { applications: applications as unknown as InterviewerApplication[] };
 }
 
 export interface ApplicationFeedback {
@@ -53,27 +93,92 @@ export interface ApplicationFeedback {
   created_at: string;
 }
 
-export async function getSubmittedFeedback() {
+export interface InterviewHistoryItem extends ApplicationFeedback {
+  application: {
+    candidate_name: string;
+    opening: {
+      title: string;
+      department: string;
+      company_id: string;
+      company: {
+        name: string;
+      }
+    }
+  }
+}
+
+export async function getInterviewHistory(companyId?: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return { error: "Not authenticated" };
+    return { error: "Not authenticated", history: [] };
   }
+
+  let targetCompanyId = companyId;
+  if (!targetCompanyId) {
+    const { getActiveCompanyId } = await import("@/app/actions/company");
+    targetCompanyId = (await getActiveCompanyId()) || undefined;
+  }
+
+  if (!targetCompanyId) {
+    return { history: [] };
+  }
+
+  // Fetch interviewer active memberships in this company
+  const { data: memberships } = await supabase
+    .from("interviewer_company_memberships")
+    .select("department_id, department:departments(name)")
+    .eq("interviewer_id", user.id)
+    .eq("company_id", targetCompanyId)
+    .eq("status", "active");
+
+  if (!memberships || memberships.length === 0) {
+    return { history: [] };
+  }
+
+  const isCompanyWide = memberships.some((m: any) => !m.department_id);
+  const allowedDepts = new Set(
+    memberships.map((m: any) => (m.department?.name || "").toLowerCase().trim()).filter(Boolean)
+  );
 
   const { data, error } = await supabase
     .from("application_history")
-    .select("*")
+    .select(`
+      *,
+      application:applications!inner(
+        candidate_name,
+        opening:openings!inner(
+          title, 
+          department, 
+          company_id, 
+          company:companies(name)
+        )
+      )
+    `)
     .eq("event_type", "feedback_submitted")
     .eq("actor_id", user.id)
+    .eq("application.opening.company_id", targetCompanyId)
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error("Error fetching submitted feedback:", error);
-    return { error: error.message };
+    console.error("Error fetching interview history:", error);
+    return { error: error.message, history: [] };
   }
 
-  return { feedback: data as ApplicationFeedback[] };
+  const filteredHistory = (data || []).filter((item: any) => {
+    if (!item?.application?.opening) return false;
+    if (isCompanyWide) return true;
+    const dept = (item.application.opening.department || "").toLowerCase().trim();
+    return allowedDepts.has(dept);
+  });
+
+  return { history: filteredHistory as unknown as InterviewHistoryItem[] };
+}
+
+export async function getSubmittedFeedback(companyId?: string) {
+  const res = await getInterviewHistory(companyId);
+  return { feedback: res.history || [] };
 }
 
 export async function submitApplicationFeedback(applicationId: string, feedback: string, rating?: string) {
@@ -98,95 +203,30 @@ export async function submitApplicationFeedback(applicationId: string, feedback:
   return { success: true };
 }
 
-export interface InterviewRequest {
-  id: string;
-  application_id: string;
-  status: string;
-  created_at: string;
-  application: {
-    candidate_name: string;
-    opening: {
-      title: string;
-      company: {
-        name: string;
-      }
-    }
-  }
-}
-
-export async function getPendingInterviewRequests() {
+export async function getInterviewerCompanies() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) return { error: "Not authenticated" };
+  if (!user) return { error: "Not authenticated", companies: [] };
 
   const { data, error } = await supabase
-    .from("interview_requests")
+    .from("interviewer_company_memberships")
     .select(`
-      id,
-      application_id,
-      status,
-      created_at,
-      application:applications(
-        candidate_name,
-        opening:openings(
-          title,
-          company:companies(name)
-        )
-      )
+      company_id,
+      company:companies(id, name, slug)
     `)
     .eq("interviewer_id", user.id)
-    .eq("status", "pending")
-    .order('created_at', { ascending: false });
+    .eq("status", "active");
 
   if (error) {
-    return { error: error.message };
+    console.error("Error fetching interviewer companies:", error);
+    return { error: error.message, companies: [] };
   }
 
-  return { requests: data as unknown as InterviewRequest[] };
-}
+  // Flatten and ensure only valid, non-null companies are returned
+  const companies = (data || [])
+    .map((m: any) => m.company)
+    .filter((c: any): c is { id: string; name: string; slug?: string } => Boolean(c && typeof c === 'object' && c.id));
 
-import { revalidatePath } from 'next/cache'
-
-export async function respondToInterviewRequest(requestId: string, accept: boolean) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) return { error: "Not authenticated" };
-
-  // Fetch the request to make sure it belongs to this interviewer
-  const { data: request, error: fetchError } = await supabase
-    .from("interview_requests")
-    .select("application_id, interviewer_id")
-    .eq("id", requestId)
-    .single();
-
-  if (fetchError || request?.interviewer_id !== user.id) {
-    return { error: "Invalid request or unauthorized" };
-  }
-
-  if (accept) {
-    // 1. Assign interviewer to application
-    const { error: assignError } = await supabase
-      .from('application_interviewers')
-      .insert({ application_id: request.application_id, interviewer_id: user.id });
-      
-    if (assignError && assignError.code !== '23505') { // ignore duplicate
-      return { error: "Failed to assign interviewer" };
-    }
-  }
-
-  // 2. Update request status
-  const newStatus = accept ? 'accepted' : 'ignored';
-  const { error: updateError } = await supabase
-    .from("interview_requests")
-    .update({ status: newStatus })
-    .eq("id", requestId);
-
-  if (updateError) {
-    return { error: "Failed to update request status" };
-  }
-
-  revalidatePath('/interviewer/dashboard')
-  return { success: true };
+  return { companies };
 }

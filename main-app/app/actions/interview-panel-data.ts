@@ -19,7 +19,20 @@ export async function getAssignmentsData(searchParams: { [key: string]: string |
   const page = typeof searchParams.page === 'string' ? parseInt(searchParams.page, 10) : 1
   const pageSize = 20
   
-  const activeCompanyId = await getActiveCompanyId();
+  let activeCompanyId = await getActiveCompanyId();
+
+  if (!activeCompanyId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: recMem } = await supabase
+        .from('recruiter_company_memberships')
+        .select('company_id')
+        .eq('recruiter_id', user.id)
+        .limit(1)
+        .maybeSingle();
+      activeCompanyId = recMem?.company_id || null;
+    }
+  }
 
   // Base query: applications joined with openings and interviewers
   let dbQuery: any = supabase
@@ -34,11 +47,6 @@ export async function getAssignmentsData(searchParams: { [key: string]: string |
       interviewers:application_interviewers(
         id,
         interviewer:profiles(id, name)
-      ),
-      requests:interview_requests(
-        id,
-        status,
-        interviewer:profiles!interview_requests_interviewer_id_fkey(id, name)
       )
     `, { count: 'exact' })
 
@@ -73,11 +81,6 @@ export async function getAssignmentsData(searchParams: { [key: string]: string |
           id,
           interviewer_id,
           interviewer:profiles(id, name)
-        ),
-        requests:interview_requests(
-          id,
-          status,
-          interviewer:profiles!interview_requests_interviewer_id_fkey(id, name)
         )
       `, { count: 'exact' })
       .eq('interviewers.interviewer_id', interviewer)
@@ -111,12 +114,9 @@ export async function getAssignmentsData(searchParams: { [key: string]: string |
     throw new Error('Failed to load assignments')
   }
 
-  // Also fetch all interviewers for the Add Interviewer dialog and filter dropdowns
-  const { data: allInterviewers } = await supabase
-    .from('profiles')
-    .select('id, name')
-    .eq('role', 'interviewer')
-    .order('name')
+  // Fetch all interviewers for the Add Interviewer dialog and filter dropdowns
+  const res = await getActiveCompanyInterviewersList(supabase, activeCompanyId);
+  const allInterviewers = res.interviewers || [];
 
   // Fetch unique departments and openings for filters
   let openingsQuery = supabase
@@ -148,91 +148,185 @@ export async function getAssignmentsData(searchParams: { [key: string]: string |
   }
 }
 
-export async function getInterviewersData() {
-  const supabase = await createClient()
-  const activeCompanyId = await getActiveCompanyId();
+async function getActiveCompanyInterviewersList(supabase: any, activeCompanyId?: string | null) {
+  let companyId = activeCompanyId;
 
-  let validInterviewerIds: string[] | null = null;
-
-  if (activeCompanyId) {
-    // 1. Get all recruiters in the active company
-    const { data: companyRecruiters } = await supabase
-      .from('recruiter_company_memberships')
-      .select('recruiter_id')
-      .eq('company_id', activeCompanyId);
-    
-    const recruiterIds = companyRecruiters?.map(r => r.recruiter_id) || [];
-
-    // 2. Get all departments created by these recruiters
-    let departmentIds: string[] = [];
-    if (recruiterIds.length > 0) {
-      const { data: companyDepartments } = await supabase
-        .from('departments')
-        .select('id')
-        .in('recruiter_id', recruiterIds);
-      departmentIds = companyDepartments?.map(d => d.id) || [];
-    }
-
-    // 3. Get all interviewers in these departments
-    if (departmentIds.length > 0) {
-      const { data: departmentMembers } = await supabase
-        .from('department_members')
-        .select('user_id')
-        .in('department_id', departmentIds);
-      validInterviewerIds = Array.from(new Set(departmentMembers?.map(m => m.user_id) || []));
-    } else {
-      validInterviewerIds = [];
+  if (!companyId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: recMem } = await supabase
+        .from('recruiter_company_memberships')
+        .select('company_id')
+        .eq('recruiter_id', user.id)
+        .limit(1)
+        .maybeSingle();
+      companyId = recMem?.company_id || null;
     }
   }
 
-  // If we are filtering by company and there are no valid interviewers, return empty early
-  if (activeCompanyId && validInterviewerIds && validInterviewerIds.length === 0) {
-    return { interviewers: [] }
+  // 1. Fetch interviewer memberships for the active company
+  let compQuery = supabase
+    .from('interviewer_company_memberships')
+    .select('interviewer_id, department_id, status');
+  if (companyId) {
+    compQuery = compQuery.eq('company_id', companyId);
+  }
+  const { data: compMemberships } = await compQuery;
+
+  // 2. Fetch all departments belonging to this company or created for it
+  const { data: companyDepts } = await supabase
+    .from('departments')
+    .select('id, name, company_id');
+  
+  const deptNameMap = new Map<string, string>();
+  const relevantDeptIds: string[] = [];
+  (companyDepts || []).forEach((d: any) => {
+    deptNameMap.set(d.id, d.name);
+    if (!companyId || !d.company_id || d.company_id === companyId) {
+      relevantDeptIds.push(d.id);
+    }
+  });
+
+  // 3. Fetch from department_members (legacy / direct department members)
+  let deptMembers: any[] = [];
+  if (relevantDeptIds.length > 0) {
+    const { data: dm } = await supabase
+      .from('department_members')
+      .select('user_id, department_id')
+      .in('department_id', relevantDeptIds);
+    deptMembers = dm || [];
   }
 
-  // Fetch interviewers and their assigned applications
-  let dbQuery = supabase
-    .from('profiles')
+  // 4. Fetch from application_interviewers for candidates in this company's openings
+  let appQuery = supabase
+    .from('application_interviewers')
     .select(`
-      id,
-      name,
-      application_interviewers(
-        application_id,
-        application:applications(
-          id,
-          candidate_name,
-          stage,
-          opening:openings(id, title, department, company_id)
-        )
+      interviewer_id,
+      application_id,
+      application:applications!inner(
+        id,
+        candidate_name,
+        stage,
+        opening:openings!inner(id, title, department, company_id)
       )
-    `)
-    .eq('role', 'interviewer')
-    .order('name')
+    `);
+  if (companyId) {
+    appQuery = appQuery.eq('application.opening.company_id', companyId);
+  }
+  const { data: appInterviewers } = await appQuery;
 
-  if (validInterviewerIds && validInterviewerIds.length > 0) {
-    dbQuery = dbQuery.in('id', validInterviewerIds);
+  // Collect all unique interviewer user IDs across all sources
+  const allInterviewerIds = new Set<string>();
+  (compMemberships || []).forEach((m: any) => allInterviewerIds.add(m.interviewer_id));
+  deptMembers.forEach((m: any) => allInterviewerIds.add(m.user_id));
+  (appInterviewers || []).forEach((a: any) => allInterviewerIds.add(a.interviewer_id));
+
+  if (allInterviewerIds.size === 0) {
+    return { interviewers: [] };
   }
 
-  const { data: interviewers, error } = await dbQuery
+  // Fetch profiles for all identified interviewers
+  const { data: profiles, error: profError } = await supabase
+    .from('profiles')
+    .select('id, name, role')
+    .in('id', Array.from(allInterviewerIds))
+    .order('name');
 
-  if (error) {
-    console.error("Error fetching interviewers view:", error)
-    throw new Error('Failed to load interviewers')
+  if (profError) {
+    console.error("Error fetching interviewer profiles:", profError);
+    return { interviewers: [] };
   }
 
-  // Filter application_interviewers to only those in the active company, just in case
-  const filteredInterviewers = (interviewers || []).map((interviewer: any) => {
-    if (!activeCompanyId) return interviewer;
-    
+  // Auto-sync any legacy department members into interviewer_company_memberships
+  for (const dm of deptMembers) {
+    if (!compMemberships?.some((m: any) => m.interviewer_id === dm.user_id)) {
+      try {
+        await supabase
+          .from('interviewer_company_memberships')
+          .insert([{
+            company_id: activeCompanyId,
+            interviewer_id: dm.user_id,
+            department_id: dm.department_id,
+            status: 'active'
+          }]);
+      } catch {
+        // Ignore if already exists or conflict
+      }
+    }
+  }
+
+  const interviewers = (profiles || []).map((profile: any) => {
+    const mems = (compMemberships || []).filter((m: any) => m.interviewer_id === profile.id);
+    const legacyMems = deptMembers.filter((m: any) => m.user_id === profile.id);
+
+    const deptNames = new Set<string>();
+    let isCompanyWide = false;
+
+    if (mems.length > 0) {
+      mems.forEach((m: any) => {
+        if (!m.department_id) {
+          isCompanyWide = true;
+        } else {
+          const name = deptNameMap.get(m.department_id);
+          if (name) deptNames.add(name);
+        }
+      });
+    }
+
+    legacyMems.forEach((lm: any) => {
+      const name = deptNameMap.get(lm.department_id);
+      if (name) deptNames.add(name);
+    });
+
+    if (mems.length === 0 && legacyMems.length === 0) {
+      isCompanyWide = true;
+    }
+
+    const depts = Array.from(deptNames);
+    const scopeLabel = isCompanyWide ? 'Company-Wide' : (depts.join(', ') || 'Company-Wide');
+
+    const assignments = (appInterviewers || [])
+      .filter((a: any) => a.interviewer_id === profile.id)
+      .map((a: any) => ({
+        application_id: a.application?.id,
+        application: a.application
+      }));
+
     return {
-      ...interviewer,
-      application_interviewers: (interviewer.application_interviewers || []).filter((assignment: any) => 
-        assignment.application?.opening?.company_id === activeCompanyId
-      )
+      id: profile.id,
+      name: profile.name || 'Unnamed Interviewer',
+      isCompanyWide,
+      departments: depts,
+      scopeLabel,
+      application_interviewers: assignments
     };
   });
 
-  return { interviewers: filteredInterviewers }
+  return { interviewers };
+}
+
+export async function getInterviewersData() {
+  const supabase = await createClient()
+  let activeCompanyId = await getActiveCompanyId();
+
+  if (!activeCompanyId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: recMem } = await supabase
+        .from('recruiter_company_memberships')
+        .select('company_id')
+        .eq('recruiter_id', user.id)
+        .limit(1)
+        .maybeSingle();
+      activeCompanyId = recMem?.company_id || null;
+    }
+  }
+
+  if (!activeCompanyId) {
+    return { interviewers: [] }
+  }
+
+  return await getActiveCompanyInterviewersList(supabase, activeCompanyId);
 }
 
 export async function getUpcomingInterviews(limit: number = 5) {

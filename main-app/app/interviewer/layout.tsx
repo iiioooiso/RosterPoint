@@ -4,6 +4,8 @@ import { InterviewerSidebar } from "@/components/interviewer-sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { InterviewerHeader } from "@/components/interviewer-header";
 import { createClient } from "@/lib/server";
+import { getInterviewerCompanies } from "@/app/actions/interviewer-data";
+import { getActiveCompanyId } from "@/app/actions/company";
 
 export default async function InterviewerLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient();
@@ -30,12 +32,19 @@ export default async function InterviewerLayout({ children }: { children: ReactN
     fallback: name ? name.substring(0, 2).toUpperCase() : (user.email ? user.email.substring(0, 2).toUpperCase() : "U"),
   } : null;
 
+  const [companiesResult, activeCompanyId] = await Promise.all([
+    getInterviewerCompanies(),
+    getActiveCompanyId(),
+  ]);
+
+  const companies = (companiesResult?.companies || []).filter((c: any) => Boolean(c && c.id));
+
   return (
     <ThemeProvider>
       <SidebarProvider>
         <InterviewerSidebar user={userInfo} />
         <SidebarInset className="text-foreground">
-          <InterviewerHeader />
+          <InterviewerHeader companies={companies || []} activeCompanyId={activeCompanyId || undefined} />
           <main className="flex-1 p-6 bg-muted/20 text-foreground">
             {children}
           </main>

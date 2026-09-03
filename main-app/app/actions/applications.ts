@@ -41,7 +41,7 @@ export async function submitApplication(openingId: string, formData: FormData) {
   // 1. Fetch opening and student profile
   const { data: opening } = await supabase
     .from('openings')
-    .select('department, recruiter_id, application_materials')
+    .select('department, recruiter_id, application_materials, company_id')
     .eq('id', openingId)
     .maybeSingle();
 
@@ -82,10 +82,11 @@ export async function submitApplication(openingId: string, formData: FormData) {
 
   // 2. Evaluate Routing Rules
   let routedDeptId = null;
+  let targetInterviewerId = null;
   if (opening) {
     const { data: rules } = await supabase
       .from('routing_rules')
-      .select('department_id, conditions')
+      .select('department_id, conditions, action')
       .eq('recruiter_id', opening.recruiter_id)
       .eq('is_active', true);
 
@@ -96,6 +97,27 @@ export async function submitApplication(openingId: string, formData: FormData) {
 
     if (matchingRule) {
       routedDeptId = matchingRule.department_id;
+      const action = matchingRule.action as any;
+      if (action?.interviewer_id) {
+        // Validate interviewer eligibility server-side before assigning
+        const { data: memberships } = await supabase
+          .from('interviewer_company_memberships')
+          .select('id, department_id, department:departments(name)')
+          .eq('interviewer_id', action.interviewer_id)
+          .eq('company_id', opening.company_id)
+          .eq('status', 'active');
+
+        if (memberships && memberships.length > 0) {
+          const isEligible = memberships.some((m: any) => {
+            if (!m.department_id) return true; // Company-wide
+            const deptName = m.department?.name || '';
+            return deptName.toLowerCase().trim() === (opening.department || '').toLowerCase().trim();
+          });
+          if (isEligible) {
+            targetInterviewerId = action.interviewer_id;
+          }
+        }
+      }
     }
   }
 
@@ -147,6 +169,14 @@ export async function submitApplication(openingId: string, formData: FormData) {
       await supabase.storage.from('application-documents').remove([storagePath]);
     }
     return { error: 'Failed to submit application.' };
+  }
+
+  // If a routing rule routed to an eligible interviewer, assign them immediately
+  if (targetInterviewerId && application) {
+    await supabase.from('application_interviewers').insert({
+      application_id: application.id,
+      interviewer_id: targetInterviewerId
+    });
   }
 
   // 5. Create the document record if resume uploaded

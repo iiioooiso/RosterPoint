@@ -305,24 +305,20 @@ export function AssignmentsTable({
                           </button>
                         </Badge>
                       ))}
-                      {app.requests?.filter((r: any) => r.status === 'pending').slice(0, 3 - (app.interviewers?.length || 0)).map((r: any) => (
-                        <Badge key={r.id} variant="outline" className="pr-1 font-normal border-dashed opacity-70">
-                          {r.interviewer?.name} (Pending)
-                        </Badge>
-                      ))}
-                      {((app.interviewers?.length || 0) + (app.requests?.filter((r: any) => r.status === 'pending').length || 0)) > 3 && (
+                      {((app.interviewers?.length || 0)) > 3 && (
                         <Badge variant="outline" className="font-normal border-dashed">
-                          +{((app.interviewers?.length || 0) + (app.requests?.filter((r: any) => r.status === 'pending').length || 0)) - 3}
+                          +{((app.interviewers?.length || 0)) - 3}
                         </Badge>
                       )}
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        variant="outline"
+                        size="sm"
+                        className="h-6 px-2 text-xs font-normal text-muted-foreground hover:text-foreground border-dashed"
                         onClick={() => setAddDialogState({ open: true, applicationIds: [app.id] })}
                         title="Add Interviewer"
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-3 h-3 mr-1" />
+                        Add
                       </Button>
                     </div>
                   </TableCell>

@@ -11,11 +11,11 @@ import { getAssignedApplications } from "@/app/actions/interviewer-data";
 import { Calendar, Loader2 } from "lucide-react";
 import { useCachedAction } from "@/hooks/use-cached-action";
 
-export function DashboardClient({ preview = false, previewData = null }: { preview?: boolean, previewData?: any }) {
+export function DashboardClient({ preview = false, previewData = null, activeCompanyId }: { preview?: boolean, previewData?: any, activeCompanyId?: string }) {
   // If preview mode, use a dummy hook that returns previewData without fetching
   const { data: fetchedData, isLoading } = preview 
     ? { data: previewData, isLoading: false } 
-    : useCachedAction("assigned-applications", getAssignedApplications);
+    : useCachedAction(`assigned-applications-${activeCompanyId}`, () => getAssignedApplications(activeCompanyId));
     
   const applications = (preview ? previewData?.applications : fetchedData?.applications) || [];
   

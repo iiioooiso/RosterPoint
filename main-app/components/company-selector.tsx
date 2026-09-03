@@ -10,14 +10,15 @@ interface Company {
   name: string;
 }
 
-export function CompanySelector({ companies, activeCompanyId }: { companies: Company[], activeCompanyId?: string }) {
+export function CompanySelector({ companies, activeCompanyId }: { companies: (Company | null | undefined)[], activeCompanyId?: string }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  if (!companies || companies.length === 0) return null;
+  const validCompanies = (companies || []).filter((c): c is Company => Boolean(c && typeof c === 'object' && c.id));
+  if (validCompanies.length === 0) return null;
 
-  const currentId = activeCompanyId || companies[0]?.id;
-  const currentCompany = companies.find(c => c.id === currentId);
+  const currentId = activeCompanyId || validCompanies[0]?.id;
+  const currentCompany = validCompanies.find(c => c.id === currentId) || validCompanies[0];
 
   const handleValueChange = (val: string | null) => {
     if (!val) return;
@@ -29,14 +30,14 @@ export function CompanySelector({ companies, activeCompanyId }: { companies: Com
 
   return (
     <div className="flex items-center" style={{ opacity: isPending ? 0.7 : 1 }}>
-      <Select value={currentId} onValueChange={handleValueChange} disabled={isPending}>
+      <Select value={currentCompany.id} onValueChange={handleValueChange} disabled={isPending}>
         <SelectTrigger className="w-[180px] h-8 text-xs bg-transparent border-none focus:ring-0 shadow-none font-medium hover:bg-muted/50 rounded-md">
           <SelectValue placeholder="Select company">
             {currentCompany?.name || "Select company"}
           </SelectValue>
         </SelectTrigger>
         <SelectContent align="end">
-          {companies.map((company) => (
+          {validCompanies.map((company) => (
             <SelectItem key={company.id} value={company.id} className="text-xs">
               {company.name}
             </SelectItem>

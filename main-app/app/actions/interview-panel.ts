@@ -20,35 +20,61 @@ export async function addInterviewerToApplication(applicationId: string, intervi
     return { error: 'Interviewer is already assigned to this application.' }
   }
 
-  // Create or update request to pending
-  const { data: existingRequest } = await supabase
-    .from('interview_requests')
-    .select('id')
-    .eq('application_id', applicationId)
-    .eq('interviewer_id', interviewerId)
+  // Fetch application's company_id and department
+  const { data: application } = await supabase
+    .from('applications')
+    .select('opening:openings(company_id, department)')
+    .eq('id', applicationId)
     .single()
+    
+  const opening = application?.opening as any;
+  const companyId = opening?.company_id;
+  const openingDepartment = opening?.department;
 
-  let error;
-  if (existingRequest) {
-    const { error: updateError } = await supabase
-      .from('interview_requests')
-      .update({ status: 'pending', recruiter_id: user.id })
-      .eq('id', existingRequest.id)
-    error = updateError;
-  } else {
-    const { error: insertError } = await supabase
-      .from('interview_requests')
-      .insert({ 
-        application_id: applicationId, 
-        interviewer_id: interviewerId,
-        recruiter_id: user.id,
-        status: 'pending' 
-      })
-    error = insertError;
+  if (!companyId) {
+    return { error: 'Application or company not found.' }
   }
 
+  // Verify interviewer is an active member of the company and eligible for the opening department
+  const { data: memberships } = await supabase
+    .from('interviewer_company_memberships')
+    .select('id, department_id, department:departments(id, name)')
+    .eq('interviewer_id', interviewerId)
+    .eq('company_id', companyId)
+    .eq('status', 'active')
+
+  if (!memberships || memberships.length === 0) {
+    return { error: 'Interviewer has not joined this company.' }
+  }
+
+  const isEligible = memberships.some((m: any) => {
+    // Company-wide membership permits any department
+    if (!m.department_id) return true;
+    // Department-scoped membership requires matching department
+    const deptName = m.department?.name || '';
+    return deptName.toLowerCase().trim() === (openingDepartment || '').toLowerCase().trim();
+  });
+
+  if (!isEligible) {
+    const memberDepts = memberships
+      .map((m: any) => m.department?.name)
+      .filter(Boolean)
+      .join(', ');
+    return { 
+      error: `Interviewer is scoped to [${memberDepts || 'another department'}] and cannot be assigned to [${openingDepartment || 'this'}] candidates.` 
+    };
+  }
+
+  // Insert assignment
+  const { error } = await supabase
+    .from('application_interviewers')
+    .insert({ 
+      application_id: applicationId, 
+      interviewer_id: interviewerId
+    })
+
   if (error) {
-    return { error: 'Failed to send interview request. Please check permissions and try again.' }
+    return { error: 'Failed to assign interviewer. Please check permissions and try again.' }
   }
 
   revalidatePath('/recruiter/interview-panel')
@@ -87,27 +113,52 @@ export async function bulkAddInterviewer(applicationIds: string[], interviewerId
     const { data: existing } = await supabase.from('application_interviewers').select('id').eq('application_id', appId).eq('interviewer_id', interviewerId).single()
     if (existing) continue;
 
-    const { data: existingRequest } = await supabase
-      .from('interview_requests')
-      .select('id')
-      .eq('application_id', appId)
-      .eq('interviewer_id', interviewerId)
+    // Fetch application's company_id and department
+    const { data: application } = await supabase
+      .from('applications')
+      .select('opening:openings(company_id, department)')
+      .eq('id', appId)
       .single()
-
-    let error;
-    if (existingRequest) {
-      const { error: updateError } = await supabase
-        .from('interview_requests')
-        .update({ status: 'pending', recruiter_id: user.id })
-        .eq('id', existingRequest.id)
-      error = updateError;
-    } else {
-      const { error: insertError } = await supabase
-        .from('interview_requests')
-        .insert({ application_id: appId, interviewer_id: interviewerId, recruiter_id: user.id, status: 'pending' })
-      error = insertError;
-    }
       
+    const opening = application?.opening as any;
+    const companyId = opening?.company_id;
+    const openingDepartment = opening?.department;
+
+    if (!companyId) {
+      results.failures.push({ applicationId: appId, error: 'Application or company not found.' })
+      continue;
+    }
+
+    // Verify interviewer is an active member of the company and eligible for the opening department
+    const { data: memberships } = await supabase
+      .from('interviewer_company_memberships')
+      .select('id, department_id, department:departments(id, name)')
+      .eq('interviewer_id', interviewerId)
+      .eq('company_id', companyId)
+      .eq('status', 'active')
+
+    if (!memberships || memberships.length === 0) {
+      results.failures.push({ applicationId: appId, error: 'Interviewer has not joined this company.' })
+      continue;
+    }
+
+    const isEligible = memberships.some((m: any) => {
+      if (!m.department_id) return true;
+      const deptName = m.department?.name || '';
+      return deptName.toLowerCase().trim() === (openingDepartment || '').toLowerCase().trim();
+    });
+
+    if (!isEligible) {
+      results.failures.push({ 
+        applicationId: appId, 
+        error: `Interviewer not eligible for [${openingDepartment || 'this'}] candidates.` 
+      })
+      continue;
+    }
+
+    const { error } = await supabase
+      .from('application_interviewers')
+      .insert({ application_id: appId, interviewer_id: interviewerId })
     if (error) {
       results.failures.push({ applicationId: appId, error: error.message })
     } else {

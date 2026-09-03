@@ -5,10 +5,15 @@ import { revalidatePath } from 'next/cache'
 
 export async function getDepartments() {
   const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('departments')
-    .select('*')
-    .order('created_at', { ascending: true })
+  const { getActiveCompanyId } = await import('@/app/actions/company');
+  const activeCompanyId = await getActiveCompanyId();
+
+  let query = supabase.from('departments').select('*').order('created_at', { ascending: true });
+  if (activeCompanyId) {
+    query = query.or(`company_id.eq.${activeCompanyId},company_id.is.null`);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Error fetching departments:', error)
@@ -21,10 +26,18 @@ export async function createDepartment(name: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authorized' }
+
+  const { getActiveCompanyId } = await import('@/app/actions/company');
+  const activeCompanyId = await getActiveCompanyId();
   
+  const payload: any = { name, recruiter_id: user.id };
+  if (activeCompanyId) {
+    payload.company_id = activeCompanyId;
+  }
+
   const { data, error } = await supabase
     .from('departments')
-    .insert([{ name, recruiter_id: user.id }])
+    .insert([payload])
     .select()
     .single()
 
@@ -183,6 +196,34 @@ export async function createRoutingRule(departmentId: string, name: string, cond
   if (!user) return { error: 'Not authorized' }
   
   const openingDept = conditions?.find((c: any) => c.field === 'opening_department')?.value;
+
+  if (action?.interviewer_id) {
+    const { getActiveCompanyId } = await import('@/app/actions/company');
+    const activeCompanyId = await getActiveCompanyId();
+    if (activeCompanyId) {
+      const { data: memberships } = await supabase
+        .from('interviewer_company_memberships')
+        .select('id, department_id, department:departments(name)')
+        .eq('interviewer_id', action.interviewer_id)
+        .eq('company_id', activeCompanyId)
+        .eq('status', 'active');
+
+      if (!memberships || memberships.length === 0) {
+        return { error: 'Selected interviewer has not joined this company.' };
+      }
+
+      const isEligible = memberships.some((m: any) => {
+        if (!m.department_id) return true;
+        const deptName = m.department?.name || '';
+        return deptName.toLowerCase().trim() === (openingDept || '').toLowerCase().trim();
+      });
+
+      if (!isEligible) {
+        return { error: `Interviewer is not eligible for [${openingDept || 'this'}] department candidates.` };
+      }
+    }
+  }
+
   if (openingDept) {
     const { data: existingRules } = await supabase.from('routing_rules').select('id, conditions');
     const conflictingRule = existingRules?.find(r => 

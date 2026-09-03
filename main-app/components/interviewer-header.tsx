@@ -4,15 +4,16 @@ import { usePathname } from "next/navigation";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { CompanySelector } from "@/components/company-selector";
 
 const routeConfig: Record<string, { title: string; description?: string }> = {
   "/interviewer/applications": { title: "Applications", description: "Candidates routed to your teams" },
   "/interviewer/dashboard": { title: "Interviewer Workspace", description: "Manage your interview assignments." },
   "/interviewer/feedback": { title: "Interview Feedback", description: "Provide and manage your interview feedback." },
-  "/interviewer/requests": { title: "Interview Requests", description: "Manage interview requests from companies." }
+  "/interviewer/history": { title: "Interview History", description: "View your past interviews and feedback." }
 };
 
-export function InterviewerHeader() {
+export function InterviewerHeader({ companies = [], activeCompanyId }: { companies?: any[], activeCompanyId?: string }) {
   const pathname = usePathname();
   
   const currentRoute = Object.keys(routeConfig).find(route => pathname.startsWith(route));
@@ -35,6 +36,12 @@ export function InterviewerHeader() {
         )}
       </div>
       <div className="flex items-center gap-4">
+        {companies.length > 0 && (
+          <>
+            <CompanySelector companies={companies} activeCompanyId={activeCompanyId} />
+            <Separator orientation="vertical" className="h-6 hidden sm:block" />
+          </>
+        )}
         <ThemeToggle />
       </div>
     </header>

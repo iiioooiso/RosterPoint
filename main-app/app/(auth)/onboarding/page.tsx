@@ -67,7 +67,7 @@ export default function OnboardingPage() {
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="sex-select">Sex</Label>
-                <Select name="sex" required value={sex} onValueChange={setSex}>
+                <Select name="sex" required value={sex} onValueChange={(val) => val && setSex(val)}>
                   <SelectTrigger id="sex-select">
                     <SelectValue placeholder="Select">
                       {sex === 'male' ? 'Male' : sex === 'female' ? 'Female' : sex === 'other' ? 'Other' : sex === 'prefer_not_to_say' ? 'Prefer not to say' : 'Select'}

@@ -98,7 +98,7 @@ function SignupContent() {
                 <input type="hidden" name="role" value="interviewer" />
               </>
             ) : (
-              <Select name="role" required value={role} onValueChange={setRole}>
+              <Select name="role" required value={role} onValueChange={(val) => val && setRole(val)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select your role">
                     {role === 'student' ? 'Student' : role === 'recruiter' ? 'Recruiter' : role === 'interviewer' ? 'Interviewer' : 'Select your role'}

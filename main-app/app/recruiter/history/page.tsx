@@ -1,21 +1,24 @@
-import { getGlobalHistory } from '@/app/actions/history'
-import { HistoryFeed } from './history-feed'
+import { getApplicantsWithHistory } from '@/app/actions/history'
+import { ApplicantsHistoryTable } from '@/components/history/applicants-history-table'
 
 export const metadata = {
   title: 'History | cx-hire',
-  description: 'Recent hiring activity across the pipeline',
+  description: 'Candidate activity history and pipeline audit trails',
 }
 
 export default async function HistoryPage() {
-  const { data: initialEvents, count } = await getGlobalHistory(1, 50)
+  const { data: applicants } = await getApplicantsWithHistory()
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
-
-
-      <div className="mx-auto max-w-3xl">
-        <HistoryFeed initialData={initialEvents} initialCount={count} />
+    <div className="flex-1 space-y-6 p-8 pt-6 max-w-7xl mx-auto">
+      <div className="border-b pb-5">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Pipeline History</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Review candidate-by-candidate hiring timeline, stage progressions, and interviewer evaluations.
+        </p>
       </div>
+
+      <ApplicantsHistoryTable applicants={applicants || []} />
     </div>
   )
 }
