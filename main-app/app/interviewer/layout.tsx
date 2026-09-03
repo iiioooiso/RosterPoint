@@ -8,7 +8,7 @@ import { createClient } from "@/lib/server";
 export default async function InterviewerLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   let role = "Unknown";
   let name = "";
   if (user) {

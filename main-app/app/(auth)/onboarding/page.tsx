@@ -12,6 +12,7 @@ export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [role, setRole] = useState<string>("student")
+  const [sex, setSex] = useState<string>("")
 
   const handleSubmit = async (formData: FormData) => {
     setError(null)
@@ -41,7 +42,9 @@ export default function OnboardingPage() {
             <Label htmlFor="role-select">I am a...</Label>
             <Select name="role" required value={role} onValueChange={(val) => val && setRole(val)}>
               <SelectTrigger id="role-select">
-                <SelectValue placeholder="Select your role" />
+                <SelectValue placeholder="Select your role">
+                  {role === 'student' ? 'Student' : role === 'recruiter' ? 'Recruiter' : role === 'interviewer' ? 'Interviewer' : 'Select your role'}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent alignItemWithTrigger={false} align="start" side="bottom" sideOffset={8}>
                 <SelectItem value="student">Student</SelectItem>
@@ -64,9 +67,11 @@ export default function OnboardingPage() {
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="sex-select">Sex</Label>
-                <Select name="sex" required>
+                <Select name="sex" required value={sex} onValueChange={setSex}>
                   <SelectTrigger id="sex-select">
-                    <SelectValue placeholder="Select" />
+                    <SelectValue placeholder="Select">
+                      {sex === 'male' ? 'Male' : sex === 'female' ? 'Female' : sex === 'other' ? 'Other' : sex === 'prefer_not_to_say' ? 'Prefer not to say' : 'Select'}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="male">Male</SelectItem>

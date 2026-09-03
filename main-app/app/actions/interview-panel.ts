@@ -21,14 +21,31 @@ export async function addInterviewerToApplication(applicationId: string, intervi
   }
 
   // Create or update request to pending
-  const { error } = await supabase
+  const { data: existingRequest } = await supabase
     .from('interview_requests')
-    .upsert({ 
-      application_id: applicationId, 
-      interviewer_id: interviewerId,
-      recruiter_id: user.id,
-      status: 'pending' 
-    }, { onConflict: 'application_id, interviewer_id' })
+    .select('id')
+    .eq('application_id', applicationId)
+    .eq('interviewer_id', interviewerId)
+    .single()
+
+  let error;
+  if (existingRequest) {
+    const { error: updateError } = await supabase
+      .from('interview_requests')
+      .update({ status: 'pending', recruiter_id: user.id })
+      .eq('id', existingRequest.id)
+    error = updateError;
+  } else {
+    const { error: insertError } = await supabase
+      .from('interview_requests')
+      .insert({ 
+        application_id: applicationId, 
+        interviewer_id: interviewerId,
+        recruiter_id: user.id,
+        status: 'pending' 
+      })
+    error = insertError;
+  }
 
   if (error) {
     return { error: 'Failed to send interview request. Please check permissions and try again.' }
@@ -70,9 +87,26 @@ export async function bulkAddInterviewer(applicationIds: string[], interviewerId
     const { data: existing } = await supabase.from('application_interviewers').select('id').eq('application_id', appId).eq('interviewer_id', interviewerId).single()
     if (existing) continue;
 
-    const { error } = await supabase
+    const { data: existingRequest } = await supabase
       .from('interview_requests')
-      .upsert({ application_id: appId, interviewer_id: interviewerId, recruiter_id: user.id, status: 'pending' }, { onConflict: 'application_id, interviewer_id' })
+      .select('id')
+      .eq('application_id', appId)
+      .eq('interviewer_id', interviewerId)
+      .single()
+
+    let error;
+    if (existingRequest) {
+      const { error: updateError } = await supabase
+        .from('interview_requests')
+        .update({ status: 'pending', recruiter_id: user.id })
+        .eq('id', existingRequest.id)
+      error = updateError;
+    } else {
+      const { error: insertError } = await supabase
+        .from('interview_requests')
+        .insert({ application_id: appId, interviewer_id: interviewerId, recruiter_id: user.id, status: 'pending' })
+      error = insertError;
+    }
       
     if (error) {
       results.failures.push({ applicationId: appId, error: error.message })

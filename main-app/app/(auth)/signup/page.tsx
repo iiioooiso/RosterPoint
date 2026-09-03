@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 function SignupContent() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [role, setRole] = useState("student")
   const [isPending, startTransition] = useTransition()
   
   const searchParams = useSearchParams()
@@ -97,9 +98,11 @@ function SignupContent() {
                 <input type="hidden" name="role" value="interviewer" />
               </>
             ) : (
-              <Select name="role" required defaultValue="student">
+              <Select name="role" required value={role} onValueChange={setRole}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select your role" />
+                  <SelectValue placeholder="Select your role">
+                    {role === 'student' ? 'Student' : role === 'recruiter' ? 'Recruiter' : role === 'interviewer' ? 'Interviewer' : 'Select your role'}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent alignItemWithTrigger={false} align="start" side="bottom" sideOffset={8}>
                   <SelectItem value="student">Student</SelectItem>

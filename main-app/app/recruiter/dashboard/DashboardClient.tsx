@@ -20,16 +20,90 @@ import { format, parseISO, formatDistanceToNow, isToday, isTomorrow } from "date
 import Link from "next/link";
 import { ApplicationHistoryEvent } from "@/app/actions/history";
 
+export function PipelineByStageCard({ applications_by_stage }: { applications_by_stage: any[] }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Pipeline by Stage</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {applications_by_stage.length === 0 ? (
+          <div className="text-sm text-muted-foreground py-8 text-center">No applications yet.</div>
+        ) : (
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={applications_by_stage} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <XAxis type="number" hide />
+                <YAxis dataKey="stage" type="category" axisLine={false} tickLine={false} fontSize={12} width={100} style={{ textTransform: "capitalize" }} />
+                <Tooltip cursor={{ fill: "transparent" }} />
+                <Bar dataKey="count" fill="#10b981" radius={[0, 4, 4, 0]} barSize={20} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+export function StalledApplicationsCard({ alerts, preview = false }: { alerts: any[], preview?: boolean }) {
+  const getDaysStalled = (dateString: string) => {
+    const diff = new Date().getTime() - new Date(dateString).getTime();
+    return Math.floor(diff / (1000 * 3600 * 24));
+  };
+
+  return (
+    <Card className="flex flex-col">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Stalled Applications</CardTitle>
+        {preview ? (
+          <span className="text-sm text-muted-foreground opacity-50 flex items-center pointer-events-none">
+            View All <ArrowRight className="ml-1 h-4 w-4" />
+          </span>
+        ) : (
+          <Link href="/recruiter/alerts" className="text-sm text-muted-foreground hover:text-primary flex items-center">
+            View All <ArrowRight className="ml-1 h-4 w-4" />
+          </Link>
+        )}
+      </CardHeader>
+      <CardContent className="flex-1">
+        {alerts.length === 0 ? (
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground py-8 text-center">
+            Your active applications are moving on schedule.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {alerts.map((alert) => (
+              <div key={alert.id} className="flex items-center justify-between p-3 border rounded-lg bg-card text-sm">
+                <div className="flex flex-col">
+                  <span className="font-medium">{alert.candidate_name}</span>
+                  <span className="text-muted-foreground text-xs">{alert.opening?.title}</span>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span className="capitalize text-muted-foreground">{alert.stage}</span>
+                  <span className="text-destructive font-medium">{getDaysStalled(alert.stage_updated_at)} days</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function DashboardClient({ 
   metrics, 
   alerts, 
   upcomingInterviews, 
-  recentHistory 
+  recentHistory,
+  preview = false
 }: { 
   metrics: DashboardMetrics | null;
   alerts: any[];
   upcomingInterviews: any[];
   recentHistory: ApplicationHistoryEvent[];
+  preview?: boolean;
 }) {
   if (!metrics) {
     return (
@@ -55,11 +129,6 @@ export function DashboardClient({
     week: format(parseISO(item.week), "MMM d"),
     count: item.count,
   }));
-
-  const getDaysStalled = (dateString: string) => {
-    const diff = new Date().getTime() - new Date(dateString).getTime();
-    return Math.floor(diff / (1000 * 3600 * 24));
-  };
 
   const getInterviewDayLabel = (dateString: string) => {
     const date = new Date(dateString);
@@ -90,6 +159,11 @@ export function DashboardClient({
         return `Activity on ${candidateName}'s application`;
     }
   };
+
+  if (preview) {
+    // In preview mode, disable interactive links but still render the exact full UI.
+    // The links in the UI below will check the preview flag if needed, or we just rely on PreviewWrapper's pointer-events-none.
+  }
 
   return (
     <div className="flex-1 space-y-8 p-8 pt-6">
@@ -186,62 +260,12 @@ export function DashboardClient({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Pipeline by Stage</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {applications_by_stage.length === 0 ? (
-              <div className="text-sm text-muted-foreground py-8 text-center">No applications yet.</div>
-            ) : (
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={applications_by_stage} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    <XAxis type="number" hide />
-                    <YAxis dataKey="stage" type="category" axisLine={false} tickLine={false} fontSize={12} width={100} style={{ textTransform: "capitalize" }} />
-                    <Tooltip cursor={{ fill: "transparent" }} />
-                    <Bar dataKey="count" fill="#10b981" radius={[0, 4, 4, 0]} barSize={20} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <PipelineByStageCard applications_by_stage={applications_by_stage} />
       </div>
 
       {/* Workflows */}
       <div className="grid gap-4 md:grid-cols-2">
-        {/* Stalled Applications */}
-        <Card className="flex flex-col">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Stalled Applications</CardTitle>
-            <Link href="/recruiter/alerts" className="text-sm text-muted-foreground hover:text-primary flex items-center">
-              View All <ArrowRight className="ml-1 h-4 w-4" />
-            </Link>
-          </CardHeader>
-          <CardContent className="flex-1">
-            {alerts.length === 0 ? (
-              <div className="flex h-full items-center justify-center text-sm text-muted-foreground py-8 text-center">
-                Your active applications are moving on schedule.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {alerts.map((alert) => (
-                  <div key={alert.id} className="flex items-center justify-between p-3 border rounded-lg bg-card text-sm">
-                    <div className="flex flex-col">
-                      <span className="font-medium">{alert.candidate_name}</span>
-                      <span className="text-muted-foreground text-xs">{alert.opening?.title}</span>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="capitalize text-muted-foreground">{alert.stage}</span>
-                      <span className="text-destructive font-medium">{getDaysStalled(alert.stage_updated_at)} days</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <StalledApplicationsCard alerts={alerts} />
 
         {/* Upcoming Interviews */}
         <Card className="flex flex-col">

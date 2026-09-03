@@ -49,7 +49,9 @@ export function CompanySelector({ companies, selectedCompanyId }: CompanySelecto
       <SelectTrigger className="w-[240px]">
         <div className="flex items-center gap-2">
           <Building2 className="w-4 h-4 text-muted-foreground" />
-          <SelectValue placeholder="All Companies" />
+          <SelectValue placeholder="All Companies">
+            {displayValue === "all" ? "All Companies" : displayValue}
+          </SelectValue>
         </div>
       </SelectTrigger>
       <SelectContent>

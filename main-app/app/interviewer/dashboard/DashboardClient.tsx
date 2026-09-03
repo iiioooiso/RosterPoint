@@ -11,9 +11,14 @@ import { getAssignedApplications } from "@/app/actions/interviewer-data";
 import { Calendar, Loader2 } from "lucide-react";
 import { useCachedAction } from "@/hooks/use-cached-action";
 
-export function DashboardClient() {
-  const { data, isLoading } = useCachedAction("assigned-applications", getAssignedApplications);
-  const applications = data?.applications || [];
+export function DashboardClient({ preview = false, previewData = null }: { preview?: boolean, previewData?: any }) {
+  // If preview mode, use a dummy hook that returns previewData without fetching
+  const { data: fetchedData, isLoading } = preview 
+    ? { data: previewData, isLoading: false } 
+    : useCachedAction("assigned-applications", getAssignedApplications);
+    
+  const applications = (preview ? previewData?.applications : fetchedData?.applications) || [];
+  
   const getStageColor = (stage: string) => {
     switch (stage) {
       case "applied": return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100";
@@ -31,7 +36,7 @@ export function DashboardClient() {
     return stage.charAt(0).toUpperCase() + stage.slice(1);
   };
 
-  if (isLoading && !data) {
+  if (isLoading && !fetchedData && !preview) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -40,8 +45,8 @@ export function DashboardClient() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto w-full">
-        <Card>
+    <div className={cn("flex flex-col gap-6 max-w-6xl mx-auto w-full", preview && "p-0")}>
+        <Card className={cn(preview && "border-0 shadow-none")}>
           <CardHeader>
             <CardTitle>Assigned Candidates</CardTitle>
             <CardDescription>
@@ -70,7 +75,7 @@ export function DashboardClient() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {applications.map((app) => (
+                    {applications.map((app: any) => (
                       <TableRow key={app.id}>
                         <TableCell className="font-medium">
                           {app.candidate_name || "Unknown"}
@@ -100,9 +105,15 @@ export function DashboardClient() {
                           {format(new Date(app.created_at), "MMM d, yyyy")}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Link href={`/interviewer/applications/${app.id}`} className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
-                            View Details
-                          </Link>
+                          {preview ? (
+                             <span className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "opacity-50 pointer-events-none")}>
+                               View Details
+                             </span>
+                          ) : (
+                            <Link href={`/interviewer/applications/${app.id}`} className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
+                              View Details
+                            </Link>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

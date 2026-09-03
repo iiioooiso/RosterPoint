@@ -13,6 +13,7 @@ export function ProfileForm({ profile }: { profile: any }) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [sex, setSex] = useState(profile?.sex || '')
   const router = useRouter()
 
   const handleSubmit = async (formData: FormData) => {
@@ -68,9 +69,11 @@ export function ProfileForm({ profile }: { profile: any }) {
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="sex">Sex</Label>
-                <Select name="sex" required defaultValue={profile.sex || ''}>
+                <Select name="sex" required value={sex} onValueChange={setSex}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select" />
+                    <SelectValue placeholder="Select">
+                      {sex === 'male' ? 'Male' : sex === 'female' ? 'Female' : sex === 'other' ? 'Other' : sex === 'prefer_not_to_say' ? 'Prefer not to say' : 'Select'}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="male">Male</SelectItem>

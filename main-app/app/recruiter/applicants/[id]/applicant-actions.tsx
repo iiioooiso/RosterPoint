@@ -110,7 +110,9 @@ export function ApplicantActions({
           disabled={isUpdating}
         >
           <SelectTrigger className="w-[145px] h-9 capitalize text-xs">
-            <SelectValue placeholder="Select stage" />
+            <SelectValue placeholder="Select stage">
+              {currentStage || 'Select stage'}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="applied">Applied</SelectItem>
@@ -296,7 +298,9 @@ export function InterviewPanelManager({
             disabled={isPending}
           >
             <SelectTrigger className="flex-1 h-8 text-xs">
-              <SelectValue placeholder="Assign an interviewer..." />
+              <SelectValue placeholder="Assign an interviewer...">
+                {selectedInterviewerId ? unassigned.find(i => i.id === selectedInterviewerId)?.name || 'Unnamed Interviewer' : 'Assign an interviewer...'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {unassigned.map((interviewer) => (

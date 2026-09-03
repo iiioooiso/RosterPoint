@@ -459,8 +459,10 @@ export function OpeningForm({ opening, onCancel, onSuccess }: OpeningFormProps) 
                 <div className="space-y-2 w-[160px]">
                   <Label>Response Type</Label>
                   <Select value={newQType} onValueChange={(val: any) => setNewQType(val)}>
-                    <SelectTrigger>
-                      <SelectValue />
+                    <SelectTrigger className="w-full h-9">
+                      <SelectValue>
+                        {newQType === 'text' ? 'Short Text' : newQType === 'textarea' ? 'Long Text' : newQType === 'file' ? 'File Upload' : 'Select'}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="text">Short Text</SelectItem>

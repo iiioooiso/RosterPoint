@@ -127,4 +127,13 @@
   html {
     @apply font-sans;
   }
+
+  /* Hide scrollbar globally (Chrome, Safari, Firefox, Edge) */
+  html, body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  html::-webkit-scrollbar, body::-webkit-scrollbar {
+    display: none;
+  }
 }

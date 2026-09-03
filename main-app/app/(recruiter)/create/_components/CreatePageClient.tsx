@@ -137,7 +137,9 @@ function CreatePageClientInner({ initialOpenings }: { initialOpenings: Opening[]
           <div className="flex gap-2 w-full sm:w-auto">
             <Select value={departmentFilter} onValueChange={(val: any) => setDepartmentFilter(val)}>
               <SelectTrigger className="flex-1 sm:w-[180px]">
-                <SelectValue placeholder="Department" />
+                <SelectValue placeholder="Department">
+                  {departmentFilter && departmentFilter !== 'all' ? departmentFilter : 'Department'}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Departments</SelectItem>
@@ -147,7 +149,9 @@ function CreatePageClientInner({ initialOpenings }: { initialOpenings: Opening[]
             {types.length > 0 && (
               <Select value={typeFilter} onValueChange={(val: any) => setTypeFilter(val)}>
                 <SelectTrigger className="flex-1 sm:w-[150px]">
-                  <SelectValue placeholder="Type" />
+                  <SelectValue placeholder="Type">
+                    {typeFilter && typeFilter !== 'all' ? typeFilter : 'Type'}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
@@ -157,7 +161,9 @@ function CreatePageClientInner({ initialOpenings }: { initialOpenings: Opening[]
             )}
             <Select value={sortBy} onValueChange={(val: any) => setSortBy(val)}>
               <SelectTrigger className="flex-1 sm:w-[140px]">
-                <SelectValue placeholder="Sort by" />
+                <SelectValue placeholder="Sort by">
+                  {sortBy === 'newest' ? 'Newest first' : sortBy === 'oldest' ? 'Oldest first' : 'Sort by'}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="newest">Newest first</SelectItem>

@@ -50,10 +50,10 @@ export function InterviewerSidebar({ user }: { user?: { name: string, email: str
       <SidebarHeader className="flex h-14 items-center justify-center border-b px-4">
         <Link
           href="/interviewer/dashboard"
-          className="flex w-full items-center gap-2 font-semibold text-foreground"
+          className="flex w-full items-center gap-2 font-semibold text-foreground group"
         >
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Command className="size-4" />
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-500 shadow-sm transition-transform group-hover:scale-105">
+            <span className="text-[12px] font-bold text-white leading-none">RP</span>
           </div>
           <span className="tracking-tight text-base font-bold">RosterPoint</span>
         </Link>

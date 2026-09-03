@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-export function ApplicationForm({ opening }: { opening: Opening }) {
+export function ApplicationForm({ opening, preview = false }: { opening: Opening, preview?: boolean }) {
   const router = useRouter()
   const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -21,6 +21,11 @@ export function ApplicationForm({ opening }: { opening: Opening }) {
   const formRef = useRef<HTMLFormElement>(null)
 
   async function handleSubmit(formData: FormData) {
+    if (preview) {
+      // In preview mode, do not submit or perform any action.
+      return;
+    }
+    
     setIsPending(true)
     setError(null)
     
@@ -46,7 +51,7 @@ export function ApplicationForm({ opening }: { opening: Opening }) {
     cover_letter: { enabled: false, required: false }
   };
 
-  if (success) {
+  if (success && !preview) {
     return (
       <div className="bg-green-50/50 border border-green-200 dark:border-green-900/50 dark:bg-green-950/20 rounded-lg p-8 mt-4 text-center space-y-4">
         <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mx-auto text-green-600 dark:text-green-400">
@@ -76,8 +81,8 @@ export function ApplicationForm({ opening }: { opening: Opening }) {
         <p className="text-muted-foreground mt-1 text-sm">Please provide the requested materials to submit your application.</p>
       </div>
 
-      <form action={handleSubmit} ref={formRef} className="space-y-6">
-        {error && (
+      <form action={preview ? () => {} : handleSubmit} ref={formRef} className={cn("space-y-6", preview && "pointer-events-none")}>
+        {error && !preview && (
           <div className="text-sm font-medium text-destructive bg-destructive/10 p-3 rounded-md">
             {error}
           </div>
@@ -93,8 +98,9 @@ export function ApplicationForm({ opening }: { opening: Opening }) {
               name="resume" 
               type="file" 
               accept="application/pdf" 
-              required={materials.resume.required} 
+              required={materials.resume.required && !preview} 
               className="cursor-pointer file:cursor-pointer file:font-medium file:text-foreground text-muted-foreground"
+              disabled={preview}
             />
           </div>
         )}
@@ -109,7 +115,8 @@ export function ApplicationForm({ opening }: { opening: Opening }) {
               name="portfolio" 
               type="url" 
               placeholder="https://..."
-              required={materials.portfolio.required} 
+              required={materials.portfolio.required && !preview} 
+              disabled={preview}
             />
           </div>
         )}
@@ -124,7 +131,8 @@ export function ApplicationForm({ opening }: { opening: Opening }) {
               name="cover_letter" 
               rows={4}
               placeholder="Tell us why you are a great fit for this role..."
-              required={materials.cover_letter.required} 
+              required={materials.cover_letter.required && !preview} 
+              disabled={preview}
             />
           </div>
         )}
@@ -138,30 +146,33 @@ export function ApplicationForm({ opening }: { opening: Opening }) {
               <Textarea 
                 id={`custom_${q.id}`} 
                 name={`custom_${q.id}`} 
-                required={q.required}
+                required={q.required && !preview}
                 rows={3}
+                disabled={preview}
               />
             ) : q.type === 'file' ? (
               <Input 
                 id={`custom_${q.id}`} 
                 name={`custom_${q.id}`} 
                 type="file" 
-                required={q.required}
+                required={q.required && !preview}
                 className="cursor-pointer file:cursor-pointer file:font-medium file:text-foreground text-muted-foreground"
+                disabled={preview}
               />
             ) : (
               <Input 
                 id={`custom_${q.id}`} 
                 name={`custom_${q.id}`} 
                 type="text" 
-                required={q.required} 
+                required={q.required && !preview} 
+                disabled={preview}
               />
             )}
           </div>
         ))}
         
         <div className="pt-4 flex justify-end border-t mt-8">
-          <Button type="submit" disabled={isPending} className="px-8 shadow-sm">
+          <Button type={preview ? "button" : "submit"} disabled={isPending || preview} className="px-8 shadow-sm">
             {isPending ? "Submitting..." : "Submit Application"}
           </Button>
         </div>

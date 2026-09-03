@@ -122,7 +122,9 @@ export function AssignmentsTable({
             onValueChange={(v) => handleFilterChange('department', v)}
           >
             <SelectTrigger className="w-[160px] bg-background">
-              <SelectValue placeholder="Department" />
+              <SelectValue placeholder="Department">
+                {currentFilters.department && currentFilters.department !== "all" ? currentFilters.department : "Department"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Departments</SelectItem>
@@ -137,7 +139,9 @@ export function AssignmentsTable({
             onValueChange={(v) => handleFilterChange('opening', v)}
           >
             <SelectTrigger className="w-[180px] bg-background">
-              <SelectValue placeholder="Job Opening" />
+              <SelectValue placeholder="Job Opening">
+                {currentFilters.opening && currentFilters.opening !== "all" ? openings.find((o: any) => o.id === currentFilters.opening)?.title || "Job Opening" : "Job Opening"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Openings</SelectItem>
@@ -152,7 +156,9 @@ export function AssignmentsTable({
             onValueChange={(v) => handleFilterChange('interviewer', v)}
           >
             <SelectTrigger className="w-[180px] bg-background">
-              <SelectValue placeholder="Interviewer" />
+              <SelectValue placeholder="Interviewer">
+                {currentFilters.interviewer && currentFilters.interviewer !== "all" ? allInterviewers.find((i: any) => i.id === currentFilters.interviewer)?.name || "Interviewer" : "Interviewer"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Interviewers</SelectItem>
@@ -167,7 +173,12 @@ export function AssignmentsTable({
             onValueChange={(v) => handleFilterChange('sort', v)}
           >
             <SelectTrigger className="w-[160px] bg-background">
-              <SelectValue placeholder="Sort By" />
+              <SelectValue placeholder="Sort By">
+                {currentFilters.sort === 'created_at-desc' ? 'Newest First' :
+                 currentFilters.sort === 'created_at-asc' ? 'Oldest First' :
+                 currentFilters.sort === 'candidate-asc' ? 'Candidate (A-Z)' :
+                 currentFilters.sort === 'candidate-desc' ? 'Candidate (Z-A)' : 'Sort By'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="created_at-desc">Newest First</SelectItem>
