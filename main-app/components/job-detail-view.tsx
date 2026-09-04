@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Opening } from "@/lib/types";
 
-export function JobDetailView({ opening, alreadyApplied, preview = false }: { opening: Opening, alreadyApplied: boolean, preview?: boolean }) {
+export function JobDetailView({ opening, alreadyApplied, preview = false, userRole }: { opening: Opening, alreadyApplied: boolean, preview?: boolean, userRole?: string | null }) {
   return (
     <div className={cn("space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-3xl mx-auto", preview && "animate-none p-6")}>
       <div className="space-y-5 pb-8 border-b border-border/40">
@@ -112,7 +112,7 @@ export function JobDetailView({ opening, alreadyApplied, preview = false }: { op
               </CardContent>
             </Card>
           ) : (
-            <ApplicationForm opening={opening} preview={preview} />
+            <ApplicationForm opening={opening} preview={preview} userRole={userRole} />
           )}
         </div>
       </div>

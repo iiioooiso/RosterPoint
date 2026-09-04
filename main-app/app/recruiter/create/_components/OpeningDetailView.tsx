@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Opening } from "@/lib/types";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,9 +35,14 @@ interface OpeningDetailViewProps {
 
 export function OpeningDetailView({ opening, onBack, onEdit }: OpeningDetailViewProps) {
   const [copied, setCopied] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const getPublicUrl = () => {
-    if (typeof window !== "undefined") {
+    if (mounted && typeof window !== "undefined") {
       return `${window.location.origin}/careers/${opening.id}`;
     }
     return `/careers/${opening.id}`;
@@ -169,12 +174,16 @@ export function OpeningDetailView({ opening, onBack, onEdit }: OpeningDetailView
           {/* Quick Stats / Custom Details Grid */}
           {opening.details && opening.details.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 pt-4 border-t border-border/60">
-              {opening.details.map((detail) => (
-                <div key={detail.id} className="p-3 rounded-md bg-muted/30 border border-border/40 space-y-1">
-                  <p className="text-xs text-muted-foreground font-medium">{detail.label}</p>
-                  <p className="text-sm font-medium text-foreground">{detail.value}</p>
-                </div>
-              ))}
+              {opening.details.map((detail: any, idx) => {
+                const label = detail.label || detail.title;
+                const value = detail.value || detail.content;
+                return (
+                  <div key={detail.id || `detail-${idx}`} className="p-3 rounded-md bg-muted/30 border border-border/40 space-y-1">
+                    <p className="text-xs text-muted-foreground font-medium">{label}</p>
+                    <p className="text-sm font-medium text-foreground">{value}</p>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -206,23 +215,28 @@ export function OpeningDetailView({ opening, onBack, onEdit }: OpeningDetailView
                   <p className="text-sm text-muted-foreground">No specific requirements listed.</p>
                 ) : (
                   <ul className="space-y-2.5">
-                    {opening.requirements.map((req) => (
-                      <li key={req.id} className="flex items-start gap-2.5 text-sm">
-                        <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
-                        <div className="flex-1 flex items-center justify-between gap-2">
-                          <span className="text-foreground">{req.text}</span>
-                          {req.required ? (
-                            <Badge variant="outline" className="text-[10px] uppercase font-semibold tracking-wider text-primary border-primary/30">
-                              Required
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary" className="text-[10px] uppercase font-medium text-muted-foreground">
-                              Optional
-                            </Badge>
-                          )}
-                        </div>
-                      </li>
-                    ))}
+                    {opening.requirements.map((req: any, idx) => {
+                      const text = typeof req === 'string' ? req : req.text;
+                      const isRequired = typeof req === 'string' ? true : req.required !== false;
+                      
+                      return (
+                        <li key={req.id || `req-${idx}`} className="flex items-start gap-2.5 text-sm">
+                          <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+                          <div className="flex-1 flex items-center justify-between gap-2">
+                            <span className="text-foreground">{text}</span>
+                            {isRequired ? (
+                              <Badge variant="outline" className="text-[10px] uppercase font-semibold tracking-wider text-primary border-primary/30">
+                                Required
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="text-[10px] uppercase font-medium text-muted-foreground">
+                                Optional
+                              </Badge>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </CardContent>

@@ -209,14 +209,30 @@ export function OpeningForm({ opening, onCancel, onSuccess }: OpeningFormProps) 
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={onCancel} className="-ml-4 gap-2">
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
-        <h2 className="text-2xl font-bold">{opening ? "Edit Opening" : "Create Opening"}</h2>
-      </div>
+    <div className="relative max-w-4xl mx-auto pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      
+      {/* Desktop Floating Back Button */}
+      <Button 
+        variant="ghost" 
+        size="icon"
+        onClick={onCancel} 
+        className="absolute -left-16 top-0 hidden lg:flex h-10 w-10 text-muted-foreground hover:bg-muted/50 hover:text-foreground rounded-full"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
+
+      <div className="space-y-6">
+        <div className="mb-6">
+          {/* Mobile/Tablet Back Button */}
+          <Button variant="ghost" size="sm" onClick={onCancel} className="-ml-3 mb-4 gap-2 text-muted-foreground hover:text-foreground lg:hidden">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Openings
+          </Button>
+          <h2 className="text-xl font-medium tracking-tight text-foreground">{opening ? "Edit Opening" : "Create Opening"}</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {opening ? "Update the details for this opening." : "Configure the details and application requirements for a new opening."}
+          </p>
+        </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Basic Information */}
@@ -476,7 +492,7 @@ export function OpeningForm({ opening, onCancel, onSuccess }: OpeningFormProps) 
             <div className="pt-6 border-t mt-6">
               <h4 className="font-semibold mb-4 text-sm">Add Custom Field</h4>
               <div className="flex items-end gap-3">
-                <div className="space-y-2 flex-1">
+                <div className="flex flex-col gap-2 flex-1">
                   <Label>Field Title / Question</Label>
                   <Input 
                     placeholder="e.g. Why do you want to work here?" 
@@ -486,7 +502,7 @@ export function OpeningForm({ opening, onCancel, onSuccess }: OpeningFormProps) 
                     className="h-9"
                   />
                 </div>
-                <div className="space-y-2 w-[160px]">
+                <div className="flex flex-col gap-2 w-[160px]">
                   <Label>Response Type</Label>
                   <Select value={newQType} onValueChange={(val: any) => setNewQType(val)}>
                     <SelectTrigger className="w-full h-9">
@@ -518,6 +534,7 @@ export function OpeningForm({ opening, onCancel, onSuccess }: OpeningFormProps) 
           </Button>
         </div>
       </form>
+      </div>
     </div>
   );
 }

@@ -11,8 +11,9 @@ import { Opening, ApplicationMaterials } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
-export function ApplicationForm({ opening, preview = false }: { opening: Opening, preview?: boolean }) {
+export function ApplicationForm({ opening, preview = false, userRole }: { opening: Opening, preview?: boolean, userRole?: string | null }) {
   const router = useRouter()
   const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -23,6 +24,11 @@ export function ApplicationForm({ opening, preview = false }: { opening: Opening
   async function handleSubmit(formData: FormData) {
     if (preview) {
       // In preview mode, do not submit or perform any action.
+      return;
+    }
+    
+    if (userRole === 'recruiter' || userRole === 'interviewer') {
+      toast.error("Professional accounts cannot submit applications.");
       return;
     }
     
@@ -172,9 +178,23 @@ export function ApplicationForm({ opening, preview = false }: { opening: Opening
         ))}
         
         <div className="pt-4 flex justify-end border-t mt-8">
-          <Button type={preview ? "button" : "submit"} disabled={isPending || preview} className="px-8 shadow-sm">
-            {isPending ? "Submitting..." : "Submit Application"}
-          </Button>
+          <div 
+            title={userRole === 'recruiter' || userRole === 'interviewer' ? "You cannot apply as a recruiter/interviewer." : undefined}
+          >
+            <Button 
+              type={preview ? "button" : "submit"} 
+              disabled={isPending || preview} 
+              className="px-8 shadow-sm"
+              onClick={(e) => {
+                if (userRole === 'recruiter' || userRole === 'interviewer') {
+                  e.preventDefault();
+                  toast.error("Professional accounts cannot submit applications.");
+                }
+              }}
+            >
+              {isPending ? "Submitting..." : "Submit Application"}
+            </Button>
+          </div>
         </div>
       </form>
     </div>

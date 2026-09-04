@@ -325,3 +325,118 @@ export async function generateDocumentSignedUrl(storagePath: string) {
   
   return { url: data.signedUrl }
 }
+
+export type BulkUpdateResult = { id: string, name: string, status: 'success' | 'error', reason?: string };
+
+export async function bulkUpdateApplications(applicationIds: string[], actionType: 'advance' | 'reject'): Promise<BulkUpdateResult[]> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return applicationIds.map(id => ({ id, name: 'Unknown', status: 'error', reason: 'Not authenticated' }));
+  }
+
+  // Fetch applications to get current stages and names
+  const { data: applications, error: fetchErr } = await supabase
+    .from('applications')
+    .select('id, stage, candidate_name')
+    .in('id', applicationIds);
+
+  if (fetchErr || !applications) {
+    return applicationIds.map(id => ({ id, name: 'Unknown', status: 'error', reason: 'Failed to fetch application' }));
+  }
+
+  const STAGE_ORDER = ['applied', 'screening', 'interview', 'offer', 'hired'];
+  const results: BulkUpdateResult[] = [];
+  
+  for (const app of applications) {
+    const currentStage = app.stage;
+    const candidateName = app.candidate_name || 'Unknown Candidate';
+    
+    let targetStage: string | null = null;
+
+    if (actionType === 'reject') {
+      if (currentStage === 'rejected') {
+        results.push({ id: app.id, name: candidateName, status: 'error', reason: 'Already rejected' });
+        continue;
+      }
+      targetStage = 'rejected';
+    } else if (actionType === 'advance') {
+      if (currentStage === 'rejected') {
+        results.push({ id: app.id, name: candidateName, status: 'error', reason: 'Cannot advance a rejected application' });
+        continue;
+      }
+      
+      const currentIdx = STAGE_ORDER.indexOf(currentStage);
+      if (currentIdx === -1 || currentIdx >= STAGE_ORDER.length - 1) {
+        results.push({ id: app.id, name: candidateName, status: 'error', reason: 'No next stage available' });
+        continue;
+      }
+      targetStage = STAGE_ORDER[currentIdx + 1];
+    }
+
+    if (!targetStage) continue;
+
+    // Call existing update logic internally which handles validation and history
+    const result = await updateApplicationStage(app.id, targetStage);
+    
+    if (result.error) {
+      results.push({ id: app.id, name: candidateName, status: 'error', reason: result.error });
+    } else {
+      results.push({ id: app.id, name: candidateName, status: 'success' });
+    }
+  }
+
+  // Fallback for IDs not found
+  const foundIds = new Set(applications.map(a => a.id));
+  for (const id of applicationIds) {
+    if (!foundIds.has(id)) {
+      results.push({ id, name: 'Unknown', status: 'error', reason: 'Application not found' });
+    }
+  }
+
+  revalidatePath('/recruiter/applicants');
+  return results;
+}
+
+export async function exportPipelineCSV(companyId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'Not authenticated' };
+
+  const { data, error } = await supabase
+    .from('applications')
+    .select(`
+      id,
+      candidate_name,
+      candidate_email,
+      stage,
+      created_at,
+      source,
+      opening:openings!inner(title, company_id)
+    `)
+    .eq('opening.company_id', companyId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (!data || data.length === 0) {
+    return { error: 'No applications found to export.' };
+  }
+
+  // Generate CSV string
+  const headers = ['ID', 'Candidate Name', 'Email', 'Opening', 'Stage', 'Applied Date', 'Source'];
+  const rows = data.map(app => [
+    app.id,
+    `"${app.candidate_name || ''}"`,
+    `"${app.candidate_email || ''}"`,
+    `"${(app.opening as any)?.title || ''}"`,
+    app.stage,
+    new Date(app.created_at).toISOString().split('T')[0],
+    `"${app.source || ''}"`
+  ]);
+
+  const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  return { csv: csvContent };
+}
