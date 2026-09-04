@@ -133,7 +133,7 @@ export function DashboardClient({ preview = false, previewData = null, activeCom
                     />
                   </div>
                   <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                    <Select value={stageFilter} onValueChange={setStageFilter}>
+                    <Select value={stageFilter} onValueChange={(val) => val && setStageFilter(val)}>
                       <SelectTrigger className="w-[130px] h-9">
                         <SelectValue placeholder="Stage">
                           {stageFilter === "all" ? "All Stages" : getStageLabel(stageFilter)}
@@ -147,7 +147,7 @@ export function DashboardClient({ preview = false, previewData = null, activeCom
                       </SelectContent>
                     </Select>
                     
-                    <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                    <Select value={departmentFilter} onValueChange={(val) => val && setDepartmentFilter(val)}>
                       <SelectTrigger className="w-[140px] h-9">
                         <SelectValue placeholder="Department">
                           {departmentFilter === "all" ? "All Departments" : departmentFilter}
@@ -161,7 +161,7 @@ export function DashboardClient({ preview = false, previewData = null, activeCom
                       </SelectContent>
                     </Select>
 
-                    <Select value={sortOrder} onValueChange={setSortOrder}>
+                    <Select value={sortOrder} onValueChange={(val) => val && setSortOrder(val)}>
                       <SelectTrigger className="w-[140px] h-9">
                         <SelectValue placeholder="Sort by">
                           {sortOrder === "newest" ? "Newest First" : 

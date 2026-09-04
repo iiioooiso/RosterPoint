@@ -184,7 +184,7 @@ export function ApplicantsListClient({
             <Select 
               key={`opening-${searchParams.get('opening') || 'all'}`}
               defaultValue={searchParams.get('opening') || 'all'} 
-              onValueChange={(val) => updateUrlParam('opening', val === 'all' ? '' : val)}
+              onValueChange={(val) => val && updateUrlParam('opening', val === 'all' ? '' : val)}
             >
               <SelectTrigger className="h-9 bg-transparent border-none hover:bg-muted/40 shadow-none font-medium w-full md:w-[160px]">
                 <SelectValue placeholder="All Openings">
@@ -204,7 +204,7 @@ export function ApplicantsListClient({
             <Select 
               key={`stage-${searchParams.get('stage') || 'all'}`}
               defaultValue={searchParams.get('stage') || 'all'} 
-              onValueChange={(val) => updateUrlParam('stage', val === 'all' ? '' : val)}
+              onValueChange={(val) => val && updateUrlParam('stage', val === 'all' ? '' : val)}
             >
               <SelectTrigger className="h-9 bg-transparent border-none hover:bg-muted/40 shadow-none font-medium w-full md:w-[140px]">
                 <SelectValue placeholder="All Stages">
@@ -227,7 +227,7 @@ export function ApplicantsListClient({
             <Select 
               key={`sort-${searchParams.get('sort') || 'created_at-desc'}`}
               defaultValue={searchParams.get('sort') || 'created_at-desc'} 
-              onValueChange={(val) => updateUrlParam('sort', val)}
+              onValueChange={(val) => val && updateUrlParam('sort', val)}
             >
               <SelectTrigger className="h-9 bg-transparent border-none hover:bg-muted/40 shadow-none font-medium w-full md:w-[160px]">
                 <SelectValue placeholder="Sort By">

@@ -107,7 +107,7 @@ export function FeedbackForm({ applicationId, existingFeedback }: FeedbackFormPr
           </div>
           <div className="space-y-2">
             <Label htmlFor="rating">Overall Rating (Optional)</Label>
-            <Select value={rating} onValueChange={setRating} disabled={isSubmitting}>
+            <Select value={rating} onValueChange={(val) => val && setRating(val)} disabled={isSubmitting}>
               <SelectTrigger id="rating" className="w-full">
                 <SelectValue placeholder="Select a rating" />
               </SelectTrigger>

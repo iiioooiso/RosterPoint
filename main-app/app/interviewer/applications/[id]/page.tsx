@@ -211,8 +211,8 @@ export default async function InterviewerApplicantDetailPage({ params }: { param
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <FileText className="h-4 w-4 text-muted-foreground" />
               Internal Notes
-              <TooltipProvider>
-                <Tooltip delayDuration={300}>
+              <TooltipProvider delay={300}>
+                <Tooltip>
                   <TooltipTrigger className="text-muted-foreground hover:text-foreground transition-colors cursor-help">
                     <HelpCircle className="h-3.5 w-3.5" />
                   </TooltipTrigger>

@@ -51,8 +51,8 @@ export function RecruiterHeader({ companies = [], activeCompanyId }: { companies
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground mr-1 hidden sm:flex">
                 <span>Company:</span>
-                <TooltipProvider>
-                  <Tooltip delay={100}>
+                <TooltipProvider delay={100}>
+                  <Tooltip>
                     <TooltipTrigger className="flex items-center justify-center h-4 w-4 rounded-full border border-muted-foreground/40 text-muted-foreground/70 cursor-help hover:text-foreground hover:border-foreground transition-colors">
                       <span className="text-[10px] font-bold">?</span>
                     </TooltipTrigger>
