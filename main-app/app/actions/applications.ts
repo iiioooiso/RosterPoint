@@ -398,12 +398,12 @@ export async function bulkUpdateApplications(applicationIds: string[], actionTyp
   return results;
 }
 
-export async function exportPipelineCSV(companyId: string) {
+export async function exportPipelineCSV(companyId: string, options?: { applicationIds?: string[] }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: 'Not authenticated' };
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('applications')
     .select(`
       id,
@@ -414,8 +414,13 @@ export async function exportPipelineCSV(companyId: string) {
       source,
       opening:openings!inner(title, company_id)
     `)
-    .eq('opening.company_id', companyId)
-    .order('created_at', { ascending: false });
+    .eq('opening.company_id', companyId);
+
+  if (options?.applicationIds && options.applicationIds.length > 0) {
+    query = query.in('id', options.applicationIds);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
 
   if (error) {
     return { error: error.message };

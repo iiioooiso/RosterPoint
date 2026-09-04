@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Users, Briefcase, Loader2 } from 'lucide-react'
+import { Users, Briefcase, Loader2, Plus } from 'lucide-react'
 import { getInterviewersData } from '@/app/actions/interview-panel-data'
 import { useCachedAction } from '@/hooks/use-cached-action'
 
@@ -40,74 +40,82 @@ export function InterviewersView() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {interviewers.map((interviewer: any) => {
-        const assignments = interviewer.application_interviewers || []
-        const activeCount = assignments.length
-        
-        return (
-          <Card key={interviewer.id} className="flex flex-col">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex justify-between items-start">
-                <div className="flex flex-col gap-1 truncate">
-                  <span className="truncate">{interviewer.name || 'Unnamed Interviewer'}</span>
-                  <Badge variant="outline" className="w-fit text-xs font-normal text-muted-foreground">
-                    {interviewer.scopeLabel || 'Company-Wide'}
-                  </Badge>
-                </div>
-                <Badge variant={activeCount > 0 ? 'default' : 'secondary'}>
-                  {activeCount} active
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col">
-              {activeCount === 0 ? (
-                <div className="flex-1 flex items-center justify-center py-6 text-sm text-muted-foreground text-center">
-                  No active assignments
-                </div>
-              ) : (
-                <div className="space-y-4 flex-1">
-                  <div className="space-y-3">
-                    {assignments.slice(0, 3).map((assignment: any) => {
-                      const app = assignment.application
-                      return (
-                        <div key={app.id} className="text-sm flex items-start justify-between group">
-                          <div className="flex flex-col truncate pr-2">
-                            <span className="font-medium truncate">{app.candidate_name || 'Unknown'}</span>
-                            <span className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-                              <Briefcase className="w-3 h-3" />
-                              {app.opening?.title || 'Unknown Role'}
-                            </span>
-                          </div>
-                          <Badge variant="outline" className="text-[10px] uppercase px-1.5 py-0 h-5 mt-0.5 whitespace-nowrap">
-                            {app.stage}
-                          </Badge>
-                        </div>
-                      )
-                    })}
-                    {activeCount > 3 && (
-                      <div className="text-xs text-muted-foreground pt-1">
-                        + {activeCount - 3} more applications
-                      </div>
-                    )}
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button render={<a href="/recruiter/teams?tab=invitations" />}>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Interviewer
+        </Button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {interviewers.map((interviewer: any) => {
+          const assignments = interviewer.application_interviewers || []
+          const activeCount = assignments.length
+          
+          return (
+            <Card key={interviewer.id} className="flex flex-col">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex justify-between items-start">
+                  <div className="flex flex-col gap-1 truncate">
+                    <span className="truncate">{interviewer.name || 'Unnamed Interviewer'}</span>
+                    <Badge variant="outline" className="w-fit text-xs font-normal text-muted-foreground">
+                      {interviewer.scopeLabel || 'Company-Wide'}
+                    </Badge>
                   </div>
+                  <Badge variant={activeCount > 0 ? 'secondary' : 'outline'} className="font-normal text-[11px] bg-primary/5 text-primary border-primary/20 hover:bg-primary/10 transition-colors">
+                    {activeCount} Assigned Applicant{activeCount !== 1 && 's'}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col">
+                {activeCount === 0 ? (
+                  <div className="flex-1 flex items-center justify-center py-6 text-sm text-muted-foreground text-center">
+                    No active assignments
+                  </div>
+                ) : (
+                  <div className="space-y-4 flex-1">
+                    <div className="space-y-3">
+                      {assignments.slice(0, 3).map((assignment: any) => {
+                        const app = assignment.application
+                        return (
+                          <div key={app.id} className="text-sm flex items-start justify-between group">
+                            <div className="flex flex-col truncate pr-2">
+                              <span className="font-medium truncate">{app.candidate_name || 'Unknown'}</span>
+                              <span className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                                <Briefcase className="w-3 h-3" />
+                                {app.opening?.title || 'Unknown Role'}
+                              </span>
+                            </div>
+                            <Badge variant="outline" className="text-[10px] uppercase px-1.5 py-0 h-5 mt-0.5 whitespace-nowrap">
+                              {app.stage}
+                            </Badge>
+                          </div>
+                        )
+                      })}
+                      {activeCount > 3 && (
+                        <div className="text-xs text-muted-foreground pt-1">
+                          + {activeCount - 3} more applications
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="mt-6 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    disabled={activeCount === 0}
+                    render={<a href={`/recruiter/interview-panel?interviewer=${interviewer.id}`} />}
+                  >
+                    View Assignments
+                  </Button>
                 </div>
-              )}
-              
-              <div className="mt-6 pt-4 border-t">
-                <Button 
-                  variant="outline" 
-                  className="w-full" 
-                  disabled={activeCount === 0}
-                  render={<a href={`/recruiter/interview-panel?interviewer=${interviewer.id}`} />}
-                >
-                  View Assignments
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )
-      })}
+              </CardContent>
+            </Card>
+          )
+        })}
+      </div>
     </div>
   )
 }

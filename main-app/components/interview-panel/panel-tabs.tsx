@@ -10,29 +10,29 @@ interface PanelTabsProps {
 
 export function PanelTabs({ activeTab, onTabChange }: PanelTabsProps) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="inline-flex h-10 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground shadow-inner">
       <button 
         onClick={() => onTabChange('assignments')}
         className={cn(
-          "inline-flex items-center gap-2 justify-center rounded-md px-3 py-1.5 text-sm font-medium transition-all cursor-pointer",
+          "inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-1.5 text-sm font-medium transition-all cursor-pointer",
           activeTab === 'assignments' 
-            ? "bg-background text-foreground shadow-sm" 
-            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            ? "bg-background text-foreground shadow-sm ring-1 ring-black/5 dark:ring-white/10" 
+            : "hover:text-foreground hover:bg-background/50"
         )}
       >
-        <LayoutList className="w-4 h-4" />
+        <LayoutList className="w-4 h-4 mr-2" />
         Panel Assignments
       </button>
       <button 
         onClick={() => onTabChange('interviewers')}
         className={cn(
-          "inline-flex items-center gap-2 justify-center rounded-md px-3 py-1.5 text-sm font-medium transition-all cursor-pointer",
+          "inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-1.5 text-sm font-medium transition-all cursor-pointer",
           activeTab === 'interviewers' 
-            ? "bg-background text-foreground shadow-sm" 
-            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            ? "bg-background text-foreground shadow-sm ring-1 ring-black/5 dark:ring-white/10" 
+            : "hover:text-foreground hover:bg-background/50"
         )}
       >
-        <Users className="w-4 h-4" />
+        <Users className="w-4 h-4 mr-2" />
         Interviewers
       </button>
     </div>

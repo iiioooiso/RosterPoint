@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { updateApplicationStage, generateDocumentSignedUrl } from "@/app/actions/applications"
 import { updateApplicationNotes } from "@/app/actions/applications-notes"
 import { addInterviewerToApplication, removeInterviewerFromApplication } from "@/app/actions/interview-panel"
@@ -42,6 +43,7 @@ export function ApplicantActions({
   currentStage: string 
 }) {
   const [isUpdating, setIsUpdating] = useState(false)
+  const [errorDialog, setErrorDialog] = useState<{isOpen: boolean, message: string}>({isOpen: false, message: ''})
 
   const currentIdx = STAGE_ORDER.indexOf(currentStage as ApplicationStage)
   const nextStage = currentIdx >= 0 && currentIdx < STAGE_ORDER.length - 1 ? STAGE_ORDER[currentIdx + 1] : null
@@ -52,6 +54,7 @@ export function ApplicantActions({
     const res = await updateApplicationStage(applicationId, newStage)
     if (res?.error) {
       toast.error(res.error)
+      setErrorDialog({isOpen: true, message: res.error})
     } else {
       toast.success(`Application moved to ${STAGE_LABELS[newStage] || newStage}`)
     }
@@ -124,6 +127,25 @@ export function ApplicantActions({
           </SelectContent>
         </Select>
       </div>
+
+      <Dialog open={errorDialog.isOpen} onOpenChange={(open) => setErrorDialog(prev => ({...prev, isOpen: open}))}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <XCircle className="h-5 w-5" />
+              Stage Change Failed
+            </DialogTitle>
+            <DialogDescription className="pt-2 text-sm">
+              {errorDialog.message}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end pt-2">
+            <Button variant="outline" onClick={() => setErrorDialog(prev => ({...prev, isOpen: false}))}>
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

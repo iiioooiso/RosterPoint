@@ -10,6 +10,7 @@ import {
   Bell,
   History,
   Command,
+  LogOut,
 } from "lucide-react";
 
 import {
@@ -26,6 +27,8 @@ import {
 } from "@/components/ui/sidebar";
 import { useCachedAction } from "@/hooks/use-cached-action";
 import { getAlertsCount } from "@/app/actions/alerts";
+import { createClient } from "@/lib/client";
+import { useRouter } from "next/navigation";
 
 const navItems = [
   {
@@ -68,7 +71,14 @@ const navItems = [
 
 export function RecruiterSidebar({ user }: { user?: { name: string, email: string, role: string, fallback: string } | null }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { data: alertsData } = useCachedAction("alerts-count", getAlertsCount);
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
 
   return (
     <Sidebar>
@@ -116,7 +126,7 @@ export function RecruiterSidebar({ user }: { user?: { name: string, email: strin
       </SidebarContent>
       {user && (
         <div className="mt-auto border-t p-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 px-2 py-2 mb-2">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-medium text-sm">
               {user.fallback}
             </div>
@@ -126,6 +136,10 @@ export function RecruiterSidebar({ user }: { user?: { name: string, email: strin
               <span className="truncate text-xs text-muted-foreground capitalize mt-0.5">{user.role}</span>
             </div>
           </div>
+          <button onClick={handleLogout} className="flex items-center gap-2 px-2 py-2 text-sm font-medium text-destructive bg-destructive/10 hover:bg-destructive/20 w-full rounded-md transition-colors mt-2">
+            <LogOut className="h-4 w-4" />
+            <span>Log out</span>
+          </button>
         </div>
       )}
       <SidebarRail />

@@ -14,14 +14,16 @@ export function AddInterviewerDialog({
   open, 
   onOpenChange, 
   applicationIds, 
+  applications,
   allInterviewers,
   onSuccess
 }: { 
   open: boolean; 
   onOpenChange: (open: boolean) => void;
   applicationIds: string[];
+  applications?: any[];
   allInterviewers: any[];
-  onSuccess?: () => void;
+  onSuccess?: (addedInterviewerId?: string) => void;
 }) {
   const [selectedInterviewerId, setSelectedInterviewerId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -56,7 +58,7 @@ export function AddInterviewerDialog({
           toast.error(res.error)
         } else {
           toast.success('Interviewer assigned successfully.')
-          onSuccess?.()
+          onSuccess?.(selectedInterviewerId)
           onOpenChange(false)
         }
       } else if (applicationIds.length > 1) {
@@ -66,7 +68,7 @@ export function AddInterviewerDialog({
           if (res.results && res.results.failures.length > 0) {
             toast.error(`Failed on ${res.results.failures.length} application(s).`)
           }
-          onSuccess?.()
+          onSuccess?.(selectedInterviewerId)
           onOpenChange(false)
         }
       }
@@ -105,7 +107,16 @@ export function AddInterviewerDialog({
                   <>
                     <CommandEmpty>No interviewers found.</CommandEmpty>
                     <CommandGroup>
-                      {interviewersList.map((interviewer) => (
+                      {interviewersList.filter(interviewer => {
+                        if (applications && applicationIds.length > 0) {
+                          const isAssignedToAll = applicationIds.every(appId => {
+                            const app = applications.find(a => a.id === appId)
+                            return app?.interviewers?.some((ai: any) => ai.interviewer?.id === interviewer.id || ai.interviewer_id === interviewer.id)
+                          })
+                          if (isAssignedToAll) return false
+                        }
+                        return true
+                      }).map((interviewer) => (
                         <CommandItem
                           key={interviewer.id}
                           value={`${interviewer.name || interviewer.id} ${interviewer.scopeLabel || ''}`}

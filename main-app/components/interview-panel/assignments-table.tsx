@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -34,6 +34,11 @@ export function AssignmentsTable({
 
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [isPending, startTransition] = useTransition()
+  const [localApplications, setLocalApplications] = useState(applications)
+
+  useEffect(() => {
+    setLocalApplications(applications)
+  }, [applications])
 
   const [addDialogState, setAddDialogState] = useState<{ open: boolean, applicationIds: string[] }>({ open: false, applicationIds: [] })
   const [detailsSheetId, setDetailsSheetId] = useState<string | null>(null)
@@ -82,11 +87,23 @@ export function AssignmentsTable({
   }
 
   const handleRemoveInterviewer = async (applicationId: string, interviewerId: string) => {
+    setLocalApplications((prev: any[]) => prev.map(app => {
+      if (app.id === applicationId) {
+        return {
+          ...app,
+          interviewers: app.interviewers.filter((ai: any) => ai.interviewer.id !== interviewerId)
+        }
+      }
+      return app
+    }))
+
     const res = await removeInterviewerFromApplication(applicationId, interviewerId)
     if (res?.error) {
       toast.error(res.error)
+      setLocalApplications(applications) // Revert on error
     } else {
       toast.success('Interviewer removed.')
+      router.refresh()
     }
   }
 
@@ -239,7 +256,7 @@ export function AssignmentsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {applications.length === 0 ? (
+            {localApplications.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-[400px] text-center">
                   {isPending ? (
@@ -275,7 +292,7 @@ export function AssignmentsTable({
                 </TableCell>
               </TableRow>
             ) : (
-              applications.map((app: any) => (
+              localApplications.map((app: any) => (
                 <TableRow key={app.id} className="group">
                   <TableCell>
                     <Checkbox
@@ -323,7 +340,7 @@ export function AssignmentsTable({
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="outline" size="sm" onClick={() => setDetailsSheetId(app.id)}>
+                    <Button variant="default" size="sm" onClick={() => setDetailsSheetId(app.id)}>
                       View Details
                     </Button>
                   </TableCell>
@@ -364,8 +381,28 @@ export function AssignmentsTable({
         open={addDialogState.open}
         onOpenChange={(open: boolean) => setAddDialogState({ ...addDialogState, open })}
         applicationIds={addDialogState.applicationIds}
+        applications={localApplications}
         allInterviewers={allInterviewers}
-        onSuccess={() => setSelectedIds([])}
+        onSuccess={(addedInterviewerId) => {
+          setSelectedIds([])
+          if (addedInterviewerId) {
+            const interviewerData = allInterviewers.find((i: any) => i.id === addedInterviewerId);
+            if (interviewerData) {
+              setLocalApplications((prev: any[]) => prev.map(app => {
+                if (addDialogState.applicationIds.includes(app.id)) {
+                  const alreadyAdded = app.interviewers?.some((ai: any) => ai.interviewer?.id === addedInterviewerId);
+                  if (alreadyAdded) return app;
+                  return {
+                    ...app,
+                    interviewers: [...(app.interviewers || []), { id: Math.random().toString(), interviewer: { id: interviewerData.id, name: interviewerData.name } }]
+                  }
+                }
+                return app;
+              }));
+            }
+          }
+          router.refresh();
+        }}
       />
 
       <ApplicationDetailsSheet

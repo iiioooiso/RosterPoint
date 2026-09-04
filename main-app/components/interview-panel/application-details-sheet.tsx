@@ -61,6 +61,19 @@ export function ApplicationDetailsSheet({
 
   if (!applicationId) return null
 
+  const getStageColor = (stage: string) => {
+    if (!stage) return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+    switch (stage.toLowerCase()) {
+      case 'applied': return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/20 dark:text-slate-300 dark:border-slate-500/30'
+      case 'screening': return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30'
+      case 'interview': return 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30'
+      case 'offer': return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/30'
+      case 'hired': return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30'
+      case 'rejected': return 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/30'
+      default: return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+    }
+  }
+
   const { application, panel, history } = data || {}
 
   return (
@@ -73,9 +86,9 @@ export function ApplicationDetailsSheet({
               Loading details...
             </div>
           ) : (
-            <div className="space-y-8 py-4">
+            <div className="space-y-8 p-6">
               {/* Header Info */}
-              <SheetHeader className="text-left space-y-1">
+              <SheetHeader className="text-left space-y-1 p-0">
                 <SheetTitle className="text-2xl">{application.candidate_name || 'Unknown Candidate'}</SheetTitle>
                 <SheetDescription className="flex flex-col gap-1.5 mt-2">
                   <span className="flex items-center gap-2 text-foreground">
@@ -131,20 +144,24 @@ export function ApplicationDetailsSheet({
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Application</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <div className="text-muted-foreground mb-1">Current Stage</div>
-                    <Badge variant="secondary" className="uppercase">{application.stage}</Badge>
+                    <div className="text-muted-foreground mb-1.5">Current Stage</div>
+                    <Badge variant="outline" className={`uppercase px-2.5 py-0.5 ${getStageColor(application.stage)}`}>
+                      {application.stage}
+                    </Badge>
                   </div>
                   <div>
-                    <div className="text-muted-foreground mb-1">Applied</div>
-                    <div className="font-medium flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                    <div className="text-muted-foreground mb-1.5">Applied</div>
+                    <div className="font-medium flex items-center gap-1.5 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-2.5 py-1 rounded-md border border-blue-100 dark:border-blue-500/20 w-fit">
+                      <Calendar className="w-3.5 h-3.5" />
                       {format(new Date(application.created_at), 'MMM d, yyyy')}
                     </div>
                   </div>
                   {application.source && (
-                    <div>
-                      <div className="text-muted-foreground mb-1">Source</div>
-                      <div className="font-medium">{application.source}</div>
+                    <div className="col-span-2 mt-1">
+                      <div className="text-muted-foreground mb-1.5">Source</div>
+                      <div className="font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-100 dark:border-emerald-500/20 w-fit">
+                        {application.source}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -166,15 +183,13 @@ export function ApplicationDetailsSheet({
                         <div className="ml-8 text-sm space-y-1">
                           <div className="font-medium text-foreground">
                             {h.event_type === 'interviewer_assigned' && (
-                              <span>Assigned <span className="font-semibold text-primary">{h.details?.interviewer_id}</span> to panel</span>
+                              <span>Assigned <span className="font-semibold text-primary">{allInterviewers.find(i => i.id === h.details?.interviewer_id)?.name || h.details?.interviewer_id}</span> to panel</span>
                             )}
                             {h.event_type === 'interviewer_removed' && (
-                              <span>Removed <span className="font-semibold text-destructive">{h.details?.interviewer_id}</span> from panel</span>
+                              <span>Removed <span className="font-semibold text-destructive">{allInterviewers.find(i => i.id === h.details?.interviewer_id)?.name || h.details?.interviewer_id}</span> from panel</span>
                             )}
-                            {/* Will display actual names if added to details, for now ID or if mapped correctly. 
-                                Realistically, we'd want interviewer name. Let's just say "Assigned interviewer". */}
                             {h.event_type !== 'interviewer_assigned' && h.event_type !== 'interviewer_removed' && (
-                              <span>{h.event_type}</span>
+                              <span className="capitalize">{h.event_type.replace(/_/g, ' ')}</span>
                             )}
                           </div>
                           <div className="text-xs text-muted-foreground">
@@ -197,6 +212,7 @@ export function ApplicationDetailsSheet({
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
         applicationIds={[applicationId]}
+        applications={application ? [{ ...application, interviewers: panel }] : undefined}
         allInterviewers={allInterviewers}
         onSuccess={() => {
           setAddDialogOpen(false)

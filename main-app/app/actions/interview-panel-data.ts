@@ -255,7 +255,9 @@ async function getActiveCompanyInterviewersList(supabase: any, activeCompanyId?:
     }
   }
 
-  const interviewers = (profiles || []).map((profile: any) => {
+  const interviewers = (profiles || [])
+    .filter((profile: any) => profile.role !== 'recruiter')
+    .map((profile: any) => {
     const mems = (compMemberships || []).filter((m: any) => m.interviewer_id === profile.id);
     const legacyMems = deptMembers.filter((m: any) => m.user_id === profile.id);
 

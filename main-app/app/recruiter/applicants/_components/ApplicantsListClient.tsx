@@ -62,6 +62,8 @@ export function ApplicantsListClient({
     actionType: null,
   })
 
+  const [exportDialog, setExportDialog] = useState(false)
+
   const STAGE_MAP: Record<string, string> = {
     all: 'All Stages',
     applied: 'Applied',
@@ -128,21 +130,23 @@ export function ApplicantsListClient({
     setSelectedIds([])
   }
 
-  const handleExportCSV = async () => {
+  const handleExportCSV = async (type: 'all' | 'current') => {
     if (!activeCompanyId) {
       toast.error('No active company selected')
       return
     }
     setIsExporting(true)
+    setExportDialog(false)
     try {
-      const result = await exportPipelineCSV(activeCompanyId)
+      const options = type === 'current' ? { applicationIds: applications.map(a => a.id) } : undefined;
+      const result = await exportPipelineCSV(activeCompanyId, options)
       if (result.error) {
         toast.error(result.error)
       } else if (result.csv) {
         const blob = new Blob([result.csv], { type: 'text/csv;charset=utf-8;' })
         const link = document.createElement('a')
         link.href = URL.createObjectURL(blob)
-        link.download = `pipeline_export_${new Date().toISOString().split('T')[0]}.csv`
+        link.download = `pipeline_export_${type}_${new Date().toISOString().split('T')[0]}.csv`
         link.click()
         toast.success('Export successful')
       }
@@ -161,7 +165,7 @@ export function ApplicantsListClient({
           <h1 className="text-2xl font-semibold tracking-tight">Applicants</h1>
           <p className="text-sm text-muted-foreground">Manage and filter your hiring pipeline.</p>
         </div>
-        <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={isExporting} className="gap-2">
+        <Button variant="outline" size="sm" onClick={() => setExportDialog(true)} disabled={isExporting} className="gap-2">
           {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
           Export CSV
         </Button>
@@ -254,7 +258,7 @@ export function ApplicantsListClient({
               Reject Selected
             </Button>
             <Button size="sm" className="h-8" onClick={() => handleBulkAction('advance')}>
-              Advance Selected
+              Move to Next Step
             </Button>
           </div>
         </div>
@@ -398,6 +402,26 @@ export function ApplicantsListClient({
               <Button onClick={() => setBulkActionState(prev => ({ ...prev, isOpen: false }))}>Close</Button>
             </DialogFooter>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Export Options Dialog */}
+      <Dialog open={exportDialog} onOpenChange={setExportDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Export Applicants</DialogTitle>
+            <DialogDescription>
+              Would you like to export only the applicants on this page, or all applicants matching your current filters?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 py-4">
+            <Button variant="outline" onClick={() => handleExportCSV('current')}>
+              Export Current Page ({applications.length})
+            </Button>
+            <Button onClick={() => handleExportCSV('all')}>
+              Export All Pages
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

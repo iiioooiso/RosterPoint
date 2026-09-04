@@ -184,10 +184,10 @@ function CreatePageClientInner({ initialOpenings }: { initialOpenings: Opening[]
     <div className="space-y-6">
       <Tabs defaultValue="open" className="w-full">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <TabsList className="w-full sm:w-auto h-auto flex flex-wrap sm:flex-nowrap">
-            <TabsTrigger value="open" className="flex-1">Open ({openOpenings.length})</TabsTrigger>
-            <TabsTrigger value="closed" className="flex-1">Closed ({closedOpenings.length})</TabsTrigger>
-            <TabsTrigger value="archived" className="flex-1">Archived ({archivedOpenings.length})</TabsTrigger>
+          <TabsList className="w-full sm:w-auto h-auto flex flex-wrap sm:flex-nowrap bg-muted p-1 shadow-inner rounded-lg text-muted-foreground">
+            <TabsTrigger value="open" className="flex-1 rounded-md data-[state=active]:ring-1 data-[state=active]:ring-black/5 dark:data-[state=active]:ring-white/10">Open ({openOpenings.length})</TabsTrigger>
+            <TabsTrigger value="closed" className="flex-1 rounded-md data-[state=active]:ring-1 data-[state=active]:ring-black/5 dark:data-[state=active]:ring-white/10">Closed ({closedOpenings.length})</TabsTrigger>
+            <TabsTrigger value="archived" className="flex-1 rounded-md data-[state=active]:ring-1 data-[state=active]:ring-black/5 dark:data-[state=active]:ring-white/10">Archived ({archivedOpenings.length})</TabsTrigger>
           </TabsList>
           <Button onClick={handleCreateNew} className="gap-2 w-full sm:w-auto">
             <Plus className="h-4 w-4" />

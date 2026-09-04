@@ -155,25 +155,25 @@ export function HistoryItem({ event, compact = false }: { event: ApplicationHist
 
   if (compact) {
     return (
-      <div className="relative flex items-start gap-4 group">
-        <div className={`flex items-center justify-center w-9 h-9 rounded-full border border-border bg-card shadow-xs shrink-0 z-10 ${bgClass}`}>
+      <div className="relative flex items-start gap-3 group">
+        <div className={`flex items-center justify-center w-8 h-8 rounded-full border border-border/50 bg-background shadow-sm shrink-0 z-10 ${bgClass}`}>
           {icon}
         </div>
-        <div className="flex-1 p-4 rounded-xl border border-border bg-card shadow-xs hover:border-muted-foreground/30 transition-colors">
-          <div className="flex items-center justify-between gap-3 mb-1.5">
-            <span className="text-sm font-semibold text-foreground">
+        <div className="flex-1 p-3 rounded-lg border border-border/50 bg-muted/20 shadow-sm hover:border-border/80 transition-colors">
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <span className="text-sm font-medium text-foreground leading-tight">
               {description}
             </span>
-            <time className="text-xs text-muted-foreground shrink-0 font-mono">
+            <time className="text-[11px] text-muted-foreground shrink-0 whitespace-nowrap mt-0.5">
               {formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}
             </time>
           </div>
-          <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/40 text-xs text-muted-foreground">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{format(new Date(event.created_at), 'MMM d, yyyy · h:mm a')}</span>
             <div className="flex items-center gap-1.5">
               <span>by {actorName}</span>
-              <Avatar className="h-5 w-5 border border-border">
-                <AvatarFallback className="text-[9px] bg-muted text-muted-foreground">{getInitials(actorName)}</AvatarFallback>
+              <Avatar className="h-4 w-4 border border-border/50">
+                <AvatarFallback className="text-[8px] bg-muted text-foreground font-medium">{getInitials(actorName)}</AvatarFallback>
               </Avatar>
             </div>
           </div>
