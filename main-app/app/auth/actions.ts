@@ -32,7 +32,7 @@ export async function signInAction(formData: FormData) {
   revalidatePath('/', 'layout')
   
   const nextUrl = formData.get('nextUrl') as string
-  if (nextUrl && nextUrl !== '/dashboard' && nextUrl !== '/') {
+  if (nextUrl && nextUrl !== '/dashboard' && nextUrl !== '/' && nextUrl !== '/onboarding') {
     redirect(nextUrl)
   }
   

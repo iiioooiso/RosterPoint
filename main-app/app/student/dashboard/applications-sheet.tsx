@@ -18,7 +18,7 @@ export function ApplicationsSheet({ applications }: { applications: any[] }) {
       <SheetTrigger render={<Button variant="default" size="sm" />}>
         My Applications
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-md overflow-y-auto h-[calc(100vh-2rem)] sm:h-[calc(100vh-2rem)] my-4 mr-4 rounded-xl border-l-0 shadow-2xl sm:p-6 p-4">
         <SheetHeader className="mb-6">
           <SheetTitle>My Applications</SheetTitle>
           <SheetDescription>Track the status of your applications.</SheetDescription>
@@ -38,8 +38,8 @@ export function ApplicationsSheet({ applications }: { applications: any[] }) {
                     <CardTitle className="text-base">{app.opening?.title}</CardTitle>
                     <CardDescription>{app.opening?.department}</CardDescription>
                   </div>
-                  <Badge variant={app.stage === 'rejected' ? 'destructive' : 'default'} className="capitalize shrink-0">
-                    {app.stage}
+                  <Badge variant={app.stage === 'rejected' ? 'destructive' : 'default'} className="capitalize shrink-0 font-medium">
+                    Current status : {app.stage}
                   </Badge>
                 </CardHeader>
                 <CardContent>

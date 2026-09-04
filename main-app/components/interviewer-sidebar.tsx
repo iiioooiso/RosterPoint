@@ -89,7 +89,7 @@ export function InterviewerSidebar({ user }: { user?: { name: string, email: str
             <span className="truncate text-xs text-muted-foreground capitalize mt-0.5">{user?.role || 'Interviewer'}</span>
           </div>
         </div>
-        <button onClick={handleLogout} className="flex items-center gap-2 px-2 py-2 text-sm text-muted-foreground hover:text-foreground w-full rounded-md hover:bg-muted transition-colors">
+        <button onClick={handleLogout} className="flex items-center gap-2 px-2 py-2 text-sm font-medium text-destructive bg-destructive/10 hover:bg-destructive/20 w-full rounded-md transition-colors mt-2">
           <LogOut className="h-4 w-4" />
           <span>Log out</span>
         </button>

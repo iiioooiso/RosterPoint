@@ -4,6 +4,7 @@ import { Suspense, useState, useTransition } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { signUpAction, signInWithGoogleAction } from '@/app/auth/actions'
+import { QuickAccessBanner } from '@/components/auth/quick-access-banner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -61,8 +62,9 @@ function SignupContent() {
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
+    <Card className="pt-0 overflow-hidden">
+      <QuickAccessBanner />
+      <CardHeader className="text-center pt-6">
         <CardTitle className="text-2xl">Create an account</CardTitle>
         <CardDescription>Enter your details below to get started</CardDescription>
       </CardHeader>

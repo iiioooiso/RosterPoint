@@ -49,3 +49,45 @@ export async function getActiveCompanyId() {
 
   return null;
 }
+
+export async function createNewCompanyAction(companyName: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return { error: 'Not authenticated.' };
+  }
+
+  if (!companyName || !companyName.trim()) {
+    return { error: 'Company name is required.' };
+  }
+
+  let slug = companyName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  if (!slug) slug = 'company';
+  
+  let { data: newCompanyId, error: companyError } = await supabase.rpc('create_company', {
+    p_name: companyName.trim(),
+    p_slug: slug
+  });
+
+  if (companyError) {
+    // Retry with random suffix in case of collision
+    slug = `${slug}-${Math.random().toString(36).substring(2, 8)}`;
+    const retry = await supabase.rpc('create_company', {
+      p_name: companyName.trim(),
+      p_slug: slug
+    });
+    if (retry.error) {
+      return { error: retry.error.message || 'Failed to create company workspace.' };
+    }
+    newCompanyId = retry.data;
+  }
+
+  if (newCompanyId) {
+    const cookieStore = await cookies();
+    cookieStore.set('cx_active_company', newCompanyId, { path: '/' });
+    return { success: true, companyId: newCompanyId };
+  }
+
+  return { error: 'Failed to create company.' };
+}

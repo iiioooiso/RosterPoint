@@ -150,7 +150,7 @@ export function DownloadDocument({ storagePath, filename }: { storagePath: strin
 
   return (
     <Sheet open={isOpen} onOpenChange={handleOpenChange}>
-      <SheetTrigger render={<Button variant="outline" size="sm" className="gap-1.5 text-xs" />}>
+      <SheetTrigger render={<Button variant="default" size="sm" className="gap-1.5 text-xs" />}>
         <FileText className="h-3.5 w-3.5" />
         View Document
       </SheetTrigger>

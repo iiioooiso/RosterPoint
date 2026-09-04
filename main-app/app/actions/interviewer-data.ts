@@ -4,6 +4,7 @@ import { createClient } from "@/lib/server";
 import { Application, Opening } from "@/lib/types";
 
 export interface InterviewerApplication extends Application {
+  hasFeedback?: boolean;
   opening: {
     id: string;
     title: string;
@@ -77,6 +78,24 @@ export async function getAssignedApplications(companyId?: string) {
       const appDept = (app.opening.department || "").toLowerCase().trim();
       return allowedDepts.has(appDept);
     });
+
+  // 5. Fetch feedback status for these applications
+  const applicationIds = applications.map((app: any) => app.id);
+  
+  if (applicationIds.length > 0) {
+    const { data: feedbackData } = await supabase
+      .from("application_history")
+      .select("application_id")
+      .eq("event_type", "feedback_submitted")
+      .eq("actor_id", user.id)
+      .in("application_id", applicationIds);
+
+    const feedbackSet = new Set((feedbackData || []).map((f: any) => f.application_id));
+    
+    applications.forEach((app: any) => {
+      app.hasFeedback = feedbackSet.has(app.id);
+    });
+  }
 
   return { applications: applications as unknown as InterviewerApplication[] };
 }

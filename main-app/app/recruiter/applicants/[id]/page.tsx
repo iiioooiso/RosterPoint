@@ -305,7 +305,7 @@ export default async function ApplicantDetailPage({ params }: { params: Promise<
                     <div key={q.id || idx} className="space-y-1.5 p-3.5 rounded-md border bg-muted/10">
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-xs font-semibold text-foreground">
-                          {idx + 1}. {q.title}
+                          Question {idx + 1}: {q.title}
                         </p>
                         {q.type && (
                           <Badge variant="outline" className="text-[10px] uppercase tracking-wider px-1.5 py-0 shrink-0 font-mono text-muted-foreground">
@@ -313,9 +313,10 @@ export default async function ApplicantDetailPage({ params }: { params: Promise<
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap bg-background p-2.5 rounded border border-border/60">
+                      <div className="text-sm text-muted-foreground whitespace-pre-wrap bg-background p-2.5 rounded border border-border/60">
+                        <span className="font-semibold text-foreground/80 block mb-1">Applicant's reply:</span>
                         {q.answer || <span className="italic text-muted-foreground/60">No answer provided</span>}
-                      </p>
+                      </div>
                     </div>
                   ))}
                 </div>

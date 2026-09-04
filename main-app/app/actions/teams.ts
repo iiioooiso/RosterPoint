@@ -84,6 +84,9 @@ export async function getDepartmentMembers(departmentId: string) {
 
 export async function getInvitations() {
   const supabase = await createClient()
+  const { getActiveCompanyId } = await import('@/app/actions/company')
+  const activeCompanyId = await getActiveCompanyId()
+
   const { data, error } = await supabase
     .rpc('get_invitations_with_stats')
 
@@ -91,7 +94,15 @@ export async function getInvitations() {
     console.error('Error fetching invitations:', error)
     return []
   }
-  return data
+
+  let filteredData = data;
+  if (activeCompanyId) {
+    filteredData = data.filter((inv: any) => 
+      !inv.company_id || inv.company_id === activeCompanyId
+    );
+  }
+
+  return filteredData
 }
 
 export async function generateInvitation(departmentId: string, invitedEmail: string | null, expiresInDays: number = 1) {
@@ -178,16 +189,32 @@ export async function deleteInvitation(id: string) {
 
 export async function getRoutingRules() {
   const supabase = await createClient()
-  const { data, error } = await supabase
+  const { getActiveCompanyId } = await import('@/app/actions/company')
+  const activeCompanyId = await getActiveCompanyId()
+
+  let query = supabase
     .from('routing_rules')
-    .select('*')
+    .select('*, department:departments(company_id)')
     .order('created_at', { ascending: true })
+
+  const { data, error } = await query
 
   if (error) {
     console.error('Error fetching routing rules:', error)
     return []
   }
-  return data
+
+  // Filter in memory for simplicity if department.company_id exists
+  let filteredData = data;
+  if (activeCompanyId) {
+    filteredData = data.filter((rule: any) => 
+      !rule.department || 
+      rule.department.company_id === activeCompanyId || 
+      rule.department.company_id === null
+    );
+  }
+
+  return filteredData
 }
 
 export async function createRoutingRule(departmentId: string, name: string, conditions: any, action: any) {

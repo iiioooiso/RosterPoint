@@ -49,11 +49,19 @@ export async function updateSession(request: NextRequest) {
   // Check if route is public
   const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route + '/'))
 
+  const redirectWithCookies = (url: URL) => {
+    const res = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach(cookie => {
+      res.cookies.set(cookie.name, cookie.value, cookie)
+    })
+    return res
+  }
+
   // Legacy route redirect
   if (pathname === '/create') {
     const url = request.nextUrl.clone()
     url.pathname = '/recruiter/create'
-    return NextResponse.redirect(url)
+    return redirectWithCookies(url)
   }
 
   // Catch bare /dashboard — resolve role and redirect
@@ -63,16 +71,16 @@ export async function updateSession(request: NextRequest) {
       if (!profile) {
         const url = request.nextUrl.clone()
         url.pathname = '/onboarding'
-        return NextResponse.redirect(url)
+        return redirectWithCookies(url)
       }
       const role = profile?.role || 'student'
       const url = request.nextUrl.clone()
       url.pathname = `/${role}/dashboard`
-      return NextResponse.redirect(url)
+      return redirectWithCookies(url)
     } else {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
-      return NextResponse.redirect(url)
+      return redirectWithCookies(url)
     }
   }
 
@@ -83,7 +91,7 @@ export async function updateSession(request: NextRequest) {
     if (pathname !== '/' && pathname !== '/dashboard') {
       url.searchParams.set('next', pathname)
     }
-    return NextResponse.redirect(url)
+    return redirectWithCookies(url)
   }
 
   // 2. Authenticated routing logic
@@ -102,7 +110,7 @@ export async function updateSession(request: NextRequest) {
         } else {
           url.searchParams.set('profile_not_found', 'true')
         }
-        return NextResponse.redirect(url)
+        return redirectWithCookies(url)
       }
       // Authenticated + No Profile + Auth Route -> /onboarding
       if (pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password') {
@@ -113,7 +121,7 @@ export async function updateSession(request: NextRequest) {
         } else {
           url.searchParams.set('profile_not_found', 'true')
         }
-        return NextResponse.redirect(url)
+        return redirectWithCookies(url)
       }
       // Authenticated + No Profile + /onboarding -> Allowed
     } else {
@@ -124,13 +132,13 @@ export async function updateSession(request: NextRequest) {
       if (pathname === '/onboarding') {
         const url = request.nextUrl.clone()
         url.pathname = roleDashboard
-        return NextResponse.redirect(url)
+        return redirectWithCookies(url)
       }
       // Authenticated + Existing Profile + Auth Route -> role dashboard
       if (pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password') {
         const url = request.nextUrl.clone()
         url.pathname = roleDashboard
-        return NextResponse.redirect(url)
+        return redirectWithCookies(url)
       }
 
       // Enforce role-based access for protected routes
@@ -141,7 +149,7 @@ export async function updateSession(request: NextRequest) {
           // Unauthorized role access -> redirect to their correct dashboard
           const url = request.nextUrl.clone()
           url.pathname = roleDashboard
-          return NextResponse.redirect(url)
+          return redirectWithCookies(url)
         }
       }
 

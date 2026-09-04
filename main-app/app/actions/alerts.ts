@@ -49,7 +49,7 @@ export async function getAlerts() {
     return { error: 'Failed to fetch alerts', alerts: [] }
   }
 
-  const activeAlerts = (data || []).filter((app: any) => app.alert_dismissals.length === 0)
+  const activeAlerts = (data || []).filter((app: any) => (app.alert_dismissals || []).length === 0)
 
   const formattedAlerts = activeAlerts.map((app: any) => ({
     id: app.id as string,

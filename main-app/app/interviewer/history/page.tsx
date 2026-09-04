@@ -1,9 +1,11 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { getInterviewHistory } from "@/app/actions/interviewer-data"
 import { getActiveCompanyId } from "@/app/actions/company"
 import { Building2, MessageSquare, Star } from "lucide-react"
+import Link from "next/link"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export default async function HistoryPage() {
   const activeCompanyId = await getActiveCompanyId()
@@ -22,14 +24,14 @@ export default async function HistoryPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Interview History</h2>
-        <p className="text-muted-foreground mt-1">View your past interviews and submitted feedback.</p>
-      </div>
+    <div className="flex flex-col gap-6 max-w-6xl mx-auto w-full">
+      <div className="w-full">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold tracking-tight">Interview History</h2>
+          <p className="text-sm text-muted-foreground mt-1">View your past interviews and submitted feedback.</p>
+        </div>
 
-      <Card>
-        <CardContent className="p-0">
+        <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -38,6 +40,7 @@ export default async function HistoryPage() {
                 <TableHead>Rating</TableHead>
                 <TableHead>Feedback</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -76,19 +79,24 @@ export default async function HistoryPage() {
                   <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
                     {formatDate(item.created_at)}
                   </TableCell>
+                  <TableCell className="text-right">
+                    <Link href={`/interviewer/applications/${item.application_id}`} className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+                      View
+                    </Link>
+                  </TableCell>
                 </TableRow>
               ))}
               {(!history || history.length === 0) && (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
                     No interview history found for this company.
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

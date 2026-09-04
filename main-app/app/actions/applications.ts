@@ -307,6 +307,11 @@ export async function updateApplicationStage(applicationId: string, newStage: st
 }
 
 export async function generateDocumentSignedUrl(storagePath: string) {
+  // If the path is already a full URL, just return it directly (useful for local seed data pointing to a remote file)
+  if (storagePath.startsWith('http://') || storagePath.startsWith('https://')) {
+    return { url: storagePath }
+  }
+
   const supabase = await createClient()
   
   const { data, error } = await supabase.storage

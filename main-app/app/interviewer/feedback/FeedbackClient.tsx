@@ -31,22 +31,22 @@ export function FeedbackClient({ activeCompanyId }: { activeCompanyId: string | 
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto w-full">
-      <Card>
-        <CardHeader>
-          <CardTitle>Pending Feedback</CardTitle>
-          <CardDescription>
+    <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto w-full items-start">
+      <div className="w-full">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold tracking-tight">Pending Feedback</h2>
+          <p className="text-sm text-muted-foreground mt-1">
             Candidates waiting for your interview feedback.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </div>
+        <div>
           {pendingFeedbackApps.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
               <CheckCircle className="h-8 w-8 mb-2 opacity-50 text-emerald-500" />
               <p>You're all caught up! No pending feedback.</p>
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 grid-cols-1">
               {pendingFeedbackApps.map(app => (
                 <Card key={app.id} className="border-dashed shadow-none bg-muted/30">
                   <CardHeader className="pb-3">
@@ -77,17 +77,17 @@ export function FeedbackClient({ activeCompanyId }: { activeCompanyId: string | 
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Submitted Feedback</CardTitle>
-          <CardDescription>
+      <div className="w-full">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold tracking-tight">Submitted Feedback</h2>
+          <p className="text-sm text-muted-foreground mt-1">
             Feedback you have already provided.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </div>
+        <div>
           {submittedFeedbackApps.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground text-sm">
               No feedback submitted yet.
@@ -123,8 +123,8 @@ export function FeedbackClient({ activeCompanyId }: { activeCompanyId: string | 
               })}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

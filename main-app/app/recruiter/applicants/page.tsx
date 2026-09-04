@@ -5,12 +5,13 @@ import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
+import { getActiveCompanyId } from '@/app/actions/company'
+
 export default async function ApplicantsPage() {
   const supabase = await createClient()
+  const activeCompanyId = await getActiveCompanyId()
 
-  // Fetch all applications along with the opening details
-  // Note: Recruiter RLS policy must allow selecting these applications
-  const { data: applications, error } = await supabase
+  let query = supabase
     .from('applications')
     .select(`
       id, 
@@ -18,9 +19,15 @@ export default async function ApplicantsPage() {
       stage, 
       student_id,
       candidate_name,
-      opening:openings(id, title, department)
+      opening:openings!inner(id, title, department, company_id)
     `)
     .order('created_at', { ascending: false })
+
+  if (activeCompanyId) {
+    query = query.eq('opening.company_id', activeCompanyId)
+  }
+
+  const { data: applications, error } = await query
 
   if (error) {
     console.error("Error fetching applications:", error)

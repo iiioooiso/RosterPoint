@@ -5,7 +5,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { submitApplicationFeedback, ApplicationFeedback } from "@/app/actions/interviewer-data";
+import { MessageSquarePlus, CheckCircle2 } from "lucide-react";
 
 interface FeedbackFormProps {
   applicationId: string;
@@ -16,23 +19,7 @@ export function FeedbackForm({ applicationId, existingFeedback }: FeedbackFormPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
   const [rating, setRating] = useState("");
-
-  if (existingFeedback) {
-    return (
-      <div className="space-y-4">
-        <div className="p-4 bg-muted/20 border rounded-md">
-          <h4 className="font-medium text-sm mb-2 text-muted-foreground">Submitted Feedback</h4>
-          <p className="text-sm whitespace-pre-wrap">{existingFeedback.details.feedback}</p>
-          {existingFeedback.details.rating && (
-            <div className="mt-3 text-sm">
-              <span className="font-medium text-muted-foreground">Rating: </span>
-              {existingFeedback.details.rating}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +35,7 @@ export function FeedbackForm({ applicationId, existingFeedback }: FeedbackFormPr
         toast.error(result.error);
       } else {
         toast.success("Feedback submitted successfully!");
+        setIsOpen(false);
         // We do a hard refresh or let the page reload to show existing feedback
         window.location.reload();
       }
@@ -58,39 +46,90 @@ export function FeedbackForm({ applicationId, existingFeedback }: FeedbackFormPr
     }
   };
 
+  if (existingFeedback) {
+    return (
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger render={<Button variant="outline" size="sm" className="gap-1.5 h-8" />}>
+          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+          View Feedback
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Submitted Feedback</DialogTitle>
+            <DialogDescription>
+              You have already evaluated this candidate.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="p-4 bg-muted/20 border rounded-md">
+              <p className="text-sm whitespace-pre-wrap">{existingFeedback.details.feedback}</p>
+              {existingFeedback.details.rating && (
+                <div className="mt-4 pt-4 border-t text-sm flex items-center justify-between">
+                  <span className="font-medium text-muted-foreground">Interviewer Rating:</span>
+                  <span className="font-medium">{existingFeedback.details.rating}</span>
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end pt-2">
+              <Button variant="outline" onClick={() => setIsOpen(false)}>Close</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="feedback">Your Feedback</Label>
-        <Textarea 
-          id="feedback"
-          placeholder="How did the interview go? What are the candidate's strengths and weaknesses?"
-          className="min-h-[150px]"
-          value={feedbackText}
-          onChange={(e) => setFeedbackText(e.target.value)}
-          disabled={isSubmitting}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="rating">Overall Rating (Optional)</Label>
-        <select 
-          id="rating"
-          className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          value={rating}
-          onChange={(e) => setRating(e.target.value)}
-          disabled={isSubmitting}
-        >
-          <option value="">Select a rating</option>
-          <option value="Strong Yes">Strong Yes</option>
-          <option value="Yes">Yes</option>
-          <option value="Mixed">Mixed</option>
-          <option value="No">No</option>
-          <option value="Strong No">Strong No</option>
-        </select>
-      </div>
-      <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? "Submitting..." : "Submit Feedback"}
-      </Button>
-    </form>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger render={<Button variant="default" size="sm" className="gap-1.5 h-8" />}>
+        <MessageSquarePlus className="h-4 w-4" />
+        Give Feedback
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Submit Interview Feedback</DialogTitle>
+          <DialogDescription>
+            Submit your candidate evaluation notes and recommendation.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-5 pt-4">
+          <div className="space-y-2">
+            <Label htmlFor="feedback">Your Feedback <span className="text-destructive">*</span></Label>
+            <Textarea 
+              id="feedback"
+              placeholder="How did the interview go? What are the candidate's strengths and weaknesses?"
+              className="min-h-[150px] resize-none"
+              value={feedbackText}
+              onChange={(e) => setFeedbackText(e.target.value)}
+              disabled={isSubmitting}
+              autoFocus
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rating">Overall Rating (Optional)</Label>
+            <Select value={rating} onValueChange={setRating} disabled={isSubmitting}>
+              <SelectTrigger id="rating" className="w-full">
+                <SelectValue placeholder="Select a rating" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Strong Yes">Strong Yes</SelectItem>
+                <SelectItem value="Yes">Yes</SelectItem>
+                <SelectItem value="Mixed">Mixed</SelectItem>
+                <SelectItem value="No">No</SelectItem>
+                <SelectItem value="Strong No">Strong No</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting || !feedbackText.trim()}>
+              {isSubmitting ? "Submitting..." : "Submit Feedback"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

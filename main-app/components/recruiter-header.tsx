@@ -5,6 +5,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CompanySelector } from "@/components/company-selector";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const routeConfig: Record<string, { title: string; description?: string }> = {
   "/recruiter/dashboard": { title: "Dashboard", description: "Overview of your hiring pipeline" },
@@ -45,8 +46,28 @@ export function RecruiterHeader({ companies = [], activeCompanyId }: { companies
         )}
       </div>
       <div className="flex items-center gap-4">
-        {companies.length > 0 && (
-          <CompanySelector companies={companies} activeCompanyId={activeCompanyId} />
+        {companies.length > 0 ? (
+          <>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground mr-1 hidden sm:flex">
+                <span>Company:</span>
+                <TooltipProvider>
+                  <Tooltip delay={100}>
+                    <TooltipTrigger className="flex items-center justify-center h-4 w-4 rounded-full border border-muted-foreground/40 text-muted-foreground/70 cursor-help hover:text-foreground hover:border-foreground transition-colors">
+                      <span className="text-[10px] font-bold">?</span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" align="center" className="max-w-[280px]">
+                      <p>Switch between the companies you manage. You can also create new companies directly from the dropdown.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <CompanySelector companies={companies} activeCompanyId={activeCompanyId} allowAddCompany={true} />
+            </div>
+            <Separator orientation="vertical" className="h-6 hidden sm:block" />
+          </>
+        ) : (
+          <CompanySelector companies={companies} activeCompanyId={activeCompanyId} allowAddCompany={true} />
         )}
         <ThemeToggle />
       </div>

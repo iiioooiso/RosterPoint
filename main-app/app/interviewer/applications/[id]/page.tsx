@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { getSubmittedFeedback } from "@/app/actions/interviewer-data"
 import { FeedbackForm } from "./FeedbackForm"
-import { ArrowLeft, Building2, Calendar, FileText, Globe, MessageSquareQuote, User } from "lucide-react"
+import { ArrowLeft, Building2, Calendar, FileText, Globe, MessageSquareQuote, User, Info, HelpCircle } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 // Helper to extract responses from candidate_responses column or parse legacy notes
 function extractCandidateResponses(app: any) {
@@ -112,14 +113,19 @@ export default async function InterviewerApplicantDetailPage({ params }: { param
       <div className="grid gap-6 md:grid-cols-2">
         {/* Screening Questions & Responses */}
         <Card className="md:col-span-2">
-          <CardHeader className="pb-3 border-b">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <MessageSquareQuote className="h-4 w-4 text-muted-foreground" />
-              Application Responses & Screening Questions
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Candidate answers submitted with this application.
-            </CardDescription>
+          <CardHeader className="pb-3 border-b flex flex-row items-start justify-between">
+            <div className="space-y-1">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <MessageSquareQuote className="h-4 w-4 text-muted-foreground" />
+                Application Responses & Screening Questions
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Candidate answers submitted with this application.
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2 mt-0 pt-0 shrink-0">
+              <FeedbackForm applicationId={id} existingFeedback={existingFeedback} />
+            </div>
           </CardHeader>
           <CardContent className="pt-4 space-y-4">
             {portfolio && (
@@ -149,14 +155,15 @@ export default async function InterviewerApplicantDetailPage({ params }: { param
                 {questions.map((q, idx) => (
                   <div key={q.id || idx} className="space-y-1.5 p-3.5 rounded-md border bg-muted/10">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-xs font-semibold text-foreground">{idx + 1}. {q.title}</p>
+                      <p className="text-xs font-semibold text-foreground">Question {idx + 1}: {q.title}</p>
                       {q.type && (
                         <Badge variant="outline" className="text-[10px] uppercase font-mono px-1.5 py-0 text-muted-foreground">{q.type}</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap bg-background p-2.5 rounded border border-border/60">
+                    <div className="text-sm text-muted-foreground whitespace-pre-wrap bg-background p-2.5 rounded border border-border/60">
+                      <span className="font-semibold text-foreground/80 block mb-1">Applicant's reply:</span>
                       {q.answer || <span className="italic text-muted-foreground/60">No answer provided</span>}
-                    </p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -204,6 +211,16 @@ export default async function InterviewerApplicantDetailPage({ params }: { param
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <FileText className="h-4 w-4 text-muted-foreground" />
               Internal Notes
+              <TooltipProvider>
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger className="text-muted-foreground hover:text-foreground transition-colors cursor-help">
+                    <HelpCircle className="h-3.5 w-3.5" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="text-xs">
+                    Internal notes are added by recruiters.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -214,21 +231,6 @@ export default async function InterviewerApplicantDetailPage({ params }: { param
             ) : (
               <p className="text-sm text-muted-foreground italic">No internal notes added.</p>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Interview Feedback */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">Interview Feedback</CardTitle>
-            <CardDescription className="text-xs">
-              {existingFeedback 
-                ? "You have submitted feedback for this candidate." 
-                : "Submit your candidate evaluation notes and recommendation."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <FeedbackForm applicationId={id} existingFeedback={existingFeedback} />
           </CardContent>
         </Card>
       </div>

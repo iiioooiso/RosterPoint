@@ -11,6 +11,12 @@ export function JobDetailView({ opening, alreadyApplied, preview = false }: { op
   return (
     <div className={cn("space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-3xl mx-auto", preview && "animate-none p-6")}>
       <div className="space-y-5 pb-8 border-b border-border/40">
+        {!preview && (
+          <Link href="/student/dashboard" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-2 transition-colors">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Dashboard
+          </Link>
+        )}
         <div className="space-y-3">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">{opening.title}</h1>
           <div className="flex flex-wrap gap-2.5">
@@ -35,10 +41,10 @@ export function JobDetailView({ opening, alreadyApplied, preview = false }: { op
 
         {opening.details && opening.details.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6 py-6 border-y border-border/40">
-            {opening.details.map((detail: { id: string; label: string; value: string }) => (
-               <div key={detail.id} className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">{detail.label}</p>
-                <p className="text-base text-foreground">{detail.value}</p>
+            {opening.details.map((detail: any, idx: number) => (
+               <div key={detail.id || idx} className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">{detail.title || detail.label}</p>
+                <p className="text-base text-foreground">{detail.content || detail.value}</p>
               </div>
             ))}
           </div>
@@ -48,15 +54,20 @@ export function JobDetailView({ opening, alreadyApplied, preview = false }: { op
           <div className="space-y-4">
             <h2 className="text-lg font-medium text-foreground tracking-tight">Requirements</h2>
             <ul className="space-y-3">
-              {opening.requirements.map((req: { id: string; text: string; required: boolean }) => (
-                <li key={req.id} className="flex gap-3 text-muted-foreground text-base leading-relaxed">
-                  <div className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground/40" />
-                  <span>
-                    {req.text} 
-                    {req.required && <span className="text-foreground/70 ml-1.5 font-medium text-sm border border-border px-1.5 py-0.5 rounded-md uppercase text-[10px]">Required</span>}
-                  </span>
-                </li>
-              ))}
+              {opening.requirements.map((req: any, idx: number) => {
+                const text = typeof req === 'string' ? req : req.text;
+                const isRequired = typeof req === 'object' ? req.required : false;
+                
+                return (
+                  <li key={req.id || idx} className="flex gap-3 text-muted-foreground text-base leading-relaxed">
+                    <div className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground/40" />
+                    <span>
+                      {text} 
+                      {isRequired && <span className="text-foreground/70 ml-1.5 font-medium text-sm border border-border px-1.5 py-0.5 rounded-md uppercase text-[10px]">Required</span>}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}

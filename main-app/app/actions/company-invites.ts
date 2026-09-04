@@ -7,6 +7,8 @@ import { getActiveCompanyId } from '@/app/actions/company'
 
 export async function getCompanyInvitations() {
   const supabase = await createClient()
+  const activeCompanyId = await getActiveCompanyId()
+
   const { data, error } = await supabase
     .rpc('get_company_invitations_with_stats')
 
@@ -14,7 +16,15 @@ export async function getCompanyInvitations() {
     console.error('Error fetching company invitations:', error)
     return []
   }
-  return data
+
+  let filteredData = data;
+  if (activeCompanyId) {
+    filteredData = data.filter((inv: any) => 
+      !inv.company_id || inv.company_id === activeCompanyId
+    );
+  }
+
+  return filteredData
 }
 
 export async function generateCompanyInvitation(
