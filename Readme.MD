@@ -30,41 +30,41 @@
 #### Core Resources
 
 **Submission Details**  
-<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/SUBMISSION.md"><code>SUBMISSION.md ↗</code></a>
+<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/SUBMISSION.md" target="_blank"><code>SUBMISSION.md ↗</code></a>
 
 <br />
 
 **Project Requirements**  
-<a href="https://github.com/iiioooiso/RosterPoint/tree/main/requirements"><code>/requirements ↗</code></a>
+<a href="https://github.com/iiioooiso/RosterPoint/tree/main/requirements" target="_blank"><code>/requirements ↗</code></a>
 
 <br />
 
 **Tech Stack**  
-<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/TECH-STACK.md"><code>TECH-STACK.md ↗</code></a>
+<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/TECH-STACK.md" target="_blank"><code>TECH-STACK.md ↗</code></a>
 
 <br /><br />
 
 #### Specifications
 
 **AI Prompts**  
-<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/ai-prompts.md"><code>docs/ai-prompts.md ↗</code></a>
+<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/ai-prompts.md" target="_blank"><code>docs/ai-prompts.md ↗</code></a>
 
 <br />
 
 **Architecture**  
-<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/architecture.md"><code>docs/architecture.md ↗</code></a>
+<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/architecture.md" target="_blank"><code>docs/architecture.md ↗</code></a>
 
 <br />
 
 **Decisions**  
-<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/decisions.md"><code>docs/decisions.md ↗</code></a>
+<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/decisions.md" target="_blank"><code>docs/decisions.md ↗</code></a>
 
 <br />
 
 **Plan**  
-<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/plan.md"><code>docs/plan.md ↗</code></a>
+<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/plan.md" target="_blank"><code>docs/plan.md ↗</code></a>
 
 <br />
 
 **Schema**  
-<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/schema.md"><code>docs/schema.md ↗</code></a>
+<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/schema.md" target="_blank"><code>docs/schema.md ↗</code></a>
