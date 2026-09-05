@@ -28,8 +28,8 @@
 <table width="100%">
   <thead>
     <tr>
-      <th align="left">Core Resources</th>
-      <th align="left">Specifications</th>
+      <th align="left" width="50%">Core Resources</th>
+      <th align="left" width="50%">Specifications</th>
     </tr>
   </thead>
   <tbody>
@@ -39,11 +39,11 @@
         <p><strong>Project Requirements</strong> <a href="https://github.com/iiioooiso/RosterPoint/tree/main/requirements" target="_blank"><code>/requirements ↗</code></a></p>
       </td>
       <td valign="top">
-        <p><strong>AI Prompts</strong> <a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/ai-prompts.md" target="_blank"><code>docs/ai-prompts.md ↗</code></a></p>
-        <p><strong>Architecture</strong> <a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/architecture.md" target="_blank"><code>docs/architecture.md ↗</code></a></p>
         <p><strong>Decisions</strong> <a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/decisions.md" target="_blank"><code>docs/decisions.md ↗</code></a></p>
+        <p><strong>Architecture</strong> <a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/architecture.md" target="_blank"><code>docs/architecture.md ↗</code></a></p>
         <p><strong>Plan</strong> <a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/plan.md" target="_blank"><code>docs/plan.md ↗</code></a></p>
         <p><strong>Schema</strong> <a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/schema.md" target="_blank"><code>docs/schema.md ↗</code></a></p>
+        <p><strong>AI Prompts</strong> <a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/ai-prompts.md" target="_blank"><code>docs/ai-prompts.md ↗</code></a></p>
       </td>
     </tr>
   </tbody>
