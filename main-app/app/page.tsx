@@ -133,7 +133,7 @@ export default async function Home(props: Props) {
               Manage jobs, applications, interviews, and decisions from a single workspace. RosterPoint brings your entire hiring pipeline together.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full justify-center pt-0 mt-1">
-              <Link href="/signup" className="w-full sm:w-auto">
+              <Link href="/login" className="w-full sm:w-auto">
                 <Button size="lg" className="w-full h-11 px-7 text-[15px] shadow-sm">
                   For Companies
                 </Button>
@@ -396,7 +396,7 @@ export default async function Home(props: Props) {
               Bring openings, candidates, recruiters and interviewers into one workspace today.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-              <Link href="/signup" className="w-full sm:w-auto">
+              <Link href="/login" className="w-full sm:w-auto">
                 <Button size="lg" className="w-full h-12 px-8 text-base">Get Started</Button>
               </Link>
               <Link href="/login" className="w-full sm:w-auto">
@@ -421,7 +421,7 @@ export default async function Home(props: Props) {
               <h4 className="font-medium text-foreground">Platform</h4>
               <ul className="space-y-3 text-muted-foreground">
                 <li><Link href="/login" className="hover:text-foreground transition-colors">Sign In</Link></li>
-                <li><Link href="/signup" className="hover:text-foreground transition-colors">Get Started</Link></li>
+                <li><Link href="/login" className="hover:text-foreground transition-colors">Get Started</Link></li>
               </ul>
             </div>
             <div className="space-y-4 col-span-2 md:col-span-1">
