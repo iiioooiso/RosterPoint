@@ -55,6 +55,15 @@ Mark each honestly. Partial is fine — say what is partial.
 - **Resume tagging/uploading**
 - **An email digest of stalled candidates**: Using Resend https://resend.com/
 - **Offer letter generation**
+- **Scalable multi-company architecture** to serve more than just 1 company.
+- **Invites (mail and direct link) for interviewers**: 
+  <br/>
+  <img src="../main-app/public/invit.png" alt="Interviewer Invites" width="800" />
+  <br/>*(Reference: [https://hire.communx.org/recruiter/teams?tab=invitations](https://hire.communx.org/recruiter/teams?tab=invitations))*
+- **Routing tab for automated routing of applicants**: 
+  <br/>
+  <img src="../main-app/public/routing.png" alt="Applicant Routing" width="800" />
+  <br/>*(Reference: [https://hire.communx.org/recruiter/teams?tab=routing](https://hire.communx.org/recruiter/teams?tab=routing))*
 
 ### How much time did you actually spend?
 
