@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="https://raw.githubusercontent.com/iiioooiso/RosterPoint/main/main-app/public/favicon-svg.svg" height="44" alt="logo" style="vertical-align: middle; margin-right: 8px;" />
+  <img src="https://raw.githubusercontent.com/iiioooiso/RosterPoint/main/main-app/public/favicon-svg.svg" height="40" alt="logo" style="vertical-align: middle; margin-right: 8px;" />
   BUSY Infotech <span style="font-weight: 300; color: #888;">| Roster Point</span>
 </h1>
 
