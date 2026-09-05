@@ -57,7 +57,7 @@ Mark each honestly. Partial is fine — say what is partial.
 - **Offer letter generation**
 - **Scalable Multi-Tenant Architecture**: Engineered with secure data partitioning to seamlessly support and manage multiple distinct companies within a unified platform.
   <br/>
-  <img src="../main-app/public/image.png" alt="Multi-Company Architecture" width="800" />
+  <img src="../main-app/public/image.png" alt="Multi-Company Architecture" style="width: 7cm; height: 5cm; object-fit: contain;" />
 - **Invites (mail and direct link) for interviewers**: 
   <br/>
   <img src="../main-app/public/invit.png" alt="Interviewer Invites" width="800" />
