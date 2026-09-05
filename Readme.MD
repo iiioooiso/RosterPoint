@@ -25,46 +25,62 @@
 
 <h3 align="center">Documentation & Architecture</h3>
 
+<table width="100%">
+  <thead>
+    <tr>
+      <th align="left" width="50%">Core Resources</th>
+      <th align="left" width="50%">Specifications</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td valign="top">
+        <p>
+          <strong>Submission Details</strong><br />
+          <a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/SUBMISSION.md" target="_blank"><code>SUBMISSION.md ↗</code></a>
+        </p>
+        <p>
+          <strong>Project Requirements</strong><br />
+          <a href="https://github.com/iiioooiso/RosterPoint/tree/main/requirements" target="_blank"><code>/requirements ↗</code></a>
+        </p>
+      </td>
+      <td valign="top">
+        <p>
+          <strong>AI Prompts</strong><br />
+          <a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/ai-prompts.md" target="_blank"><code>docs/ai-prompts.md ↗</code></a>
+        </p>
+        <p>
+          <strong>Architecture</strong><br />
+          <a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/architecture.md" target="_blank"><code>docs/architecture.md ↗</code></a>
+        </p>
+        <p>
+          <strong>Decisions</strong><br />
+          <a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/decisions.md" target="_blank"><code>docs/decisions.md ↗</code></a>
+        </p>
+        <p>
+          <strong>Plan</strong><br />
+          <a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/plan.md" target="_blank"><code>docs/plan.md ↗</code></a>
+        </p>
+        <p>
+          <strong>Schema</strong><br />
+          <a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/schema.md" target="_blank"><code>docs/schema.md ↗</code></a>
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 <br />
 
-#### Core Resources
+---
 
-**Submission Details**  
-<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/SUBMISSION.md" target="_blank"><code>SUBMISSION.md ↗</code></a>
+### Repository & Evaluation Notice
 
-<br />
+This repository is intended solely for demonstration, technical evaluation, and portfolio review. All source code, architecture, and project materials are the original work of the author.
 
-**Project Requirements**  
-<a href="https://github.com/iiioooiso/RosterPoint/tree/main/requirements" target="_blank"><code>/requirements ↗</code></a>
+#### Reviewer Note — Database Migrations
+SQL migration files under `supabase/migrations/*` are intentionally excluded from this public repository for deployment security. The complete migrations are available upon request and can be provided directly for technical evaluation.
 
-<br />
-
-**Tech Stack**  
-<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/TECH-STACK.md" target="_blank"><code>TECH-STACK.md ↗</code></a>
-
-<br /><br />
-
-#### Specifications
-
-**AI Prompts**  
-<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/ai-prompts.md" target="_blank"><code>docs/ai-prompts.md ↗</code></a>
-
-<br />
-
-**Architecture**  
-<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/architecture.md" target="_blank"><code>docs/architecture.md ↗</code></a>
-
-<br />
-
-**Decisions**  
-<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/decisions.md" target="_blank"><code>docs/decisions.md ↗</code></a>
-
-<br />
-
-**Plan**  
-<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/plan.md" target="_blank"><code>docs/plan.md ↗</code></a>
-
-<br />
-
-**Schema**  
-<a href="https://github.com/iiioooiso/RosterPoint/blob/main/requirements/docs/schema.md" target="_blank"><code>docs/schema.md ↗</code></a>
+#### Copyright & Usage
+**© 2026 Author. All Rights Reserved.**  
+Unauthorized reproduction, distribution, modification, or commercial use of any part of this project is strictly prohibited without prior written permission. Public visibility is granted exclusively for evaluation purposes and does not convey a license for reuse.

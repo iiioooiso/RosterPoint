@@ -43,6 +43,7 @@ export function LandingNavbar({ user, dashboardUrl }: { user: any, dashboardUrl:
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
             <a href="#features" className="transition-colors hover:text-foreground text-muted-foreground">Features</a>
             <a href="#how-it-works" className="transition-colors hover:text-foreground text-muted-foreground">How it Works</a>
+            <Link href="/careers" className="transition-colors hover:text-foreground text-muted-foreground">Careers</Link>
           </nav>
         </div>
         <div className="flex items-center gap-4">

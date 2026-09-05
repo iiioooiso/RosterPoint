@@ -1,15 +1,19 @@
 # Submission
 
-Fill this in and commit it. This is the first file we open.
-
 ## Links
 
 - **GitHub repository:** <a href="https://github.com/iiioooiso/RosterPoint" target="_blank">https://github.com/iiioooiso/RosterPoint</a>
 - **Live application:** <a href="https://hire.communx.org/" target="_blank">https://hire.communx.org/</a>
+- **Vercel deployment:** <a href="https://roster-point.vercel.app/" target="_blank">https://roster-point.vercel.app/</a>
+
 
 ## Notes for the reviewer
 
-No need to copy paste login credentials, we've added the student, recruiter, and interviewer quick access buttons on the login/sign up boxes on the top.
+- **Quick Logins:** No need to manually copy and paste credentials — quick-access buttons for Student, Recruiter, and Interviewer roles are provided directly on the sign-in interface.
+
+> [!NOTE]
+> **Database Migrations (`supabase/migrations/*`)**  
+> SQL migration files are intentionally excluded from this public repository for deployment security and exposure considerations. Complete schema migration scripts are available and can be provided immediately upon request or via any private channel for technical evaluation. This omission does not affect reviewing the project's implementation, architecture, or functionality.
 
 ## Demo credentials
 
@@ -34,13 +38,13 @@ Mark each honestly. Partial is fine — say what is partial.
 
 | # | Goal | Status | Notes |
 |---|------|--------|-------|
-| 1 | A multi-stage pipeline | Done | |
-| 2 | Stage definitions | Done | |
-| 3 | Job openings | Done | |
-| 4 | Role-based access | Done | |
-| 5 | Applications | Done | |
-| 6 | Feedback | Done | |
-| 7 | Advancing and rejecting | Done | |
+| 1 | Accounts and roles | Done | |
+| 2 | Job openings | Done | |
+| 3 | Applications inside job openings | Done | |
+| 4 | A pipeline with rules | Done | |
+| 5 | Interview panel | Done | |
+| 6 | Finding candidates | Done | |
+| 7 | Acting on many candidates at once | Done | |
 | 8 | A dashboard | Done | |
 | 9 | History you cannot rewrite | Done | |
 | 10 | Stalled-application alerts | Done | |

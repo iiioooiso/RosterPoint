@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/server";
+import { getAdminClient } from "@/lib/supabase-admin";
 import { revalidatePath } from "next/cache";
 import {
   OpeningDetail,
@@ -198,11 +199,11 @@ export async function getPublicOpeningById(id: string) {
     return null;
   }
   
-  const supabase = await createClient();
+  const supabase = getAdminClient() || (await createClient());
   
   const { data, error } = await supabase
     .from("openings")
-    .select("*, company:companies(name)")
+    .select("*, company:companies(id, name)")
     .eq("id", id)
     // The RLS policy ensures only active, unarchived openings can be retrieved
     .single();
@@ -214,6 +215,18 @@ export async function getPublicOpeningById(id: string) {
 
   // Flatten company name
   const rawCompany = (data as any).company;
-  const companyName = Array.isArray(rawCompany) ? rawCompany[0]?.name : rawCompany?.name;
+  let companyName = Array.isArray(rawCompany) ? rawCompany[0]?.name : rawCompany?.name;
+
+  if (!companyName && (data as any).company_id) {
+    const { data: comp } = await supabase
+      .from("companies")
+      .select("name")
+      .eq("id", (data as any).company_id)
+      .maybeSingle();
+    if (comp?.name) {
+      companyName = comp.name;
+    }
+  }
+
   return { ...data, company_name: companyName || null } as Opening & { company_name: string | null };
 }

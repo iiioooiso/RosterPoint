@@ -9,7 +9,8 @@ const publicRoutes = [
   '/reset-password',
   '/auth/confirm',
   '/auth/callback',
-  '/invite'
+  '/invite',
+  '/careers'
 ]
 
 export async function updateSession(request: NextRequest) {

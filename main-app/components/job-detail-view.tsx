@@ -8,13 +8,16 @@ import Link from "next/link";
 import { Opening } from "@/lib/types";
 
 export function JobDetailView({ opening, alreadyApplied, preview = false, userRole }: { opening: Opening, alreadyApplied: boolean, preview?: boolean, userRole?: string | null }) {
+  const backHref = userRole === "student" ? "/student/dashboard" : "/careers";
+  const backLabel = userRole === "student" ? "Back to Dashboard" : "Back to Careers";
+
   return (
     <div className={cn("space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-3xl mx-auto", preview && "animate-none p-6")}>
       <div className="space-y-5 pb-8 border-b border-border/40">
         {!preview && (
-          <Link href="/student/dashboard" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-2 transition-colors">
+          <Link href={backHref} className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-2 transition-colors">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
+            {backLabel}
           </Link>
         )}
         <div className="space-y-3">
